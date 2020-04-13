@@ -11,9 +11,9 @@ handlers:
     upload: dist/index.html
     secure: always
 
-  - url: /static/(.*)
-    static_files: dist/static/\1
-    upload: dist/static/(.*)
+  - url: /(.*)
+    static_files: dist/\1
+    upload: dist/(.*)
     secure: always
 # https://mda-covid-19.oa.r.appspot.com/
 # gcloud app deploy app.yaml --project=mda-covid-19 --version=2020-04-13

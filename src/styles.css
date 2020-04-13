@@ -1,0 +1,13 @@
+body,
+text {
+    font: 12px sans-serif;
+}
+.line {
+    fill: none;
+    stroke-width: 3;
+}
+.grid line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+    shape-rendering: crispEdges;
+}
