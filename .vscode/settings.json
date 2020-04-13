@@ -1,18 +1,1 @@
-{
-    "python.venvPath": "~/venv/mda-covid-19",
-    "python.pythonPath": "~/venv/mda-covid-19/bin/python",
-    "python.autoComplete.extraPaths": [
-        "~/venv/mda-covid-19/lib/python3.7/site-packages"
-    ],
-    "python.linting.enabled": true,
-    "python.formatting.provider": "autopep8",
-    "python.jediEnabled": false,
-    "files.exclude": {
-        "**/*.pyc": true,
-        "docs": true,
-        "tests": true,
-        "graphql": true,
-        "views": true
-    },
-    "git.ignoreLimitWarning": true
-}
+{}
