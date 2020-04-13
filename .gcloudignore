@@ -13,8 +13,6 @@
 .git
 .gitignore
 
-# Python pycache:
-__pycache__/
 # Ignored by the build system
 .vscode
 node_modules

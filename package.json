@@ -4,7 +4,7 @@
   "description": "COVID-19 Statistics per million inhabitants",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
     "dev": "webpack-dev-server",
     "build": "webpack -p --config webpack.config.js --hide-modules"
   },
@@ -27,6 +27,7 @@
     "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
-    "d3": "^5.15.1"
+    "d3": "^5.15.1",
+    "express": "^4.17.1"
   }
 }
