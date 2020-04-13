@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -20,9 +21,10 @@ module.exports = {
             template: './src/index.html',
             filename: 'index.html'
         }),
+        new webpack.HotModuleReplacementPlugin({})
     ],
     output: {
-        filename: 'main.[contenthash].js',
+        filename: 'main.[hash].js',
         path: path.resolve(__dirname, 'dist'),
     },
     module: {
@@ -38,5 +40,11 @@ module.exports = {
                 }]
             }
         ]
+    },
+    devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        compress: true,
+        port: 3000,
+        hot: true
     }
 };

@@ -135,7 +135,7 @@ var chart = function (raw, value) {
         .attr("transform", "translate(" + (margin.left - 30) + "," + (margin.top + 20) + ")");
     legend.append("text")
         .style("font", "24px sans-serif")
-        .text(value + " / per million");
+        .text(value + " / per million inhabitants");
     legend.selectAll("circle")
         .data(countries)
         .enter()

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack-dev-server",
     "build": "webpack -p --config webpack.config.js --hide-modules"
   },
   "keywords": [
@@ -22,7 +23,8 @@
     "copy-webpack-plugin": "^5.1.1",
     "html-webpack-plugin": "^4.2.0",
     "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.3"
   },
   "dependencies": {
     "d3": "^5.15.1"
