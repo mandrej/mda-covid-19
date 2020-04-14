@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 
-var margin = { top: 20, right: 30, bottom: 40, left: 50 },
+var margin = { top: 20, right: 50, bottom: 40, left: 50 },
     W = 800, H = 500,
     width = W - margin.left - margin.right,
     height = H - margin.top - margin.bottom;
@@ -17,24 +17,25 @@ var locations = {
     "Italy": 60.461828,
     "Germany": 83.783945,
     "United States": 331.002647,
-    // "China": 1439.323774
+    "China": 1439.323774
 };
 var countries = Object.keys(locations);
 
 d3.csv("https://covid.ourworldindata.org/data/ecdc/full_data.csv").then(raw => {
-    chart(raw, "total_cases");
-    chart(raw, "new_cases");
-    chart(raw, "total_deaths");
+    chart(raw, "total_cases", true, false, "1,", "Total cases / per million");
+    chart(raw, "new_cases", true, false, "1,", "Daily cases / per million");
+    chart(raw, "new_deaths", true, false, "1,", "Daily deaths / per million");
+    chart(raw, "total_deaths", false, true, ",.0%", "Total deaths / total cases");
 });
 
-var chart = function (raw, value) {
+var chart = function (raw, value, perMillion, scaleLinear, axesFormat, title) {
     var data = raw.filter(d => {
         return countries.indexOf(d.location) >= 0 && +d[value] > 0
     }).map(d => {
         return {
             location: d.location,
             date: parseDate(d.date),
-            total: +d[value] / locations[d.location]
+            total: (perMillion) ? +d[value] / locations[d.location] : +d[value] / +d["total_cases"]
         }
     }).filter(d => {
         return d.date >= parseDate(fromDate)
@@ -50,33 +51,38 @@ var chart = function (raw, value) {
 
     // set the ranges
     var xScale = d3.scaleTime()
-        .domain(d3.extent(data, function (d) { return d.date })).nice()
+        .domain(d3.extent(data, d => { return d.date })).nice()
         .rangeRound([0, width]);
-    var yScale = d3.scaleLog()
-        .domain([
-            d3.min(byLocation, c => {
-                return d3.min(c.values, d => {
-                    return d.total;
-                })
-            }),
-            d3.max(byLocation, c => {
-                return d3.max(c.values, d => {
-                    return d.total;
-                })
+    if (scaleLinear) {
+        var yScale = d3.scaleLinear();
+    } else {
+        var yScale = d3.scaleLog();
+    }
+    yScale.domain([
+        d3.min(byLocation, c => {
+            return d3.min(c.values, d => {
+                return d.total;
             })
-        ]).nice()
+        }),
+        d3.max(byLocation, c => {
+            return d3.max(c.values, d => {
+                return d.total;
+            })
+        })
+    ]).nice()
         .range([height, 0]);
     var zScale = d3.scaleOrdinal(d3.schemeCategory10)
-        .domain(byLocation.map(function (c) { return c.location; }));
+        .domain(byLocation.map(c => { return c.location; }));
 
-    var latest = d3.max(data, function (d) { return d.date });
-    var format = d3.timeFormat("%d.%m.%Y %H:%M");
-    document.getElementById("latest").innerHTML = format(latest);
+    var latest = d3.max(data, d => { return d.date });
+    var dateTime = d3.timeFormat("%d.%m.%Y %H:%M");
+    document.getElementById("latest").innerHTML = dateTime(latest);
+    var million = d3.format(",.1f")
 
     // line generator
     var line = d3.line()
-        .x(function (d, i) { return xScale(d.date); })
-        .y(function (d) { return yScale(d.total); })
+        .x((d, i) => { return xScale(d.date); })
+        .y(d => { return yScale(d.total); })
         .curve(d3.curveBasis);
 
     // gridlines generator
@@ -107,7 +113,13 @@ var chart = function (raw, value) {
         .attr("class", "axes")
         .call(d3.axisLeft(yScale)
             .ticks(5)
-            .tickFormat(d3.format("1,")));
+            .tickFormat(d3.format(axesFormat)));
+    svg.append("g")
+        .attr("class", "axes")
+        .attr("transform", "translate(" + width + ", 0)")
+        .call(d3.axisRight(yScale)
+            .ticks(5)
+            .tickFormat(d3.format(axesFormat)));
 
     // add gridlines
     svg.append("g")
@@ -135,24 +147,24 @@ var chart = function (raw, value) {
         .attr("transform", "translate(" + (margin.left - 30) + "," + (margin.top + 20) + ")");
     legend.append("text")
         .style("font", "24px sans-serif")
-        .text(value + " / per million inhabitants");
+        .text(title);
     legend.selectAll("circle")
         .data(countries)
         .enter()
         .append("circle")
         .attr("cx", 10)
-        .attr("cy", function (d, i) { return 20 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("cy", (d, i) => { return 20 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
         .attr("r", 7)
-        .style("fill", function (d) { return zScale(d) });
+        .style("fill", d => { return zScale(d) });
     legend.selectAll(".country")
-        .data(countries)
+        .data(Object.entries(locations))
         .enter()
         .append("text")
         .attr("class", "country")
         .attr("x", 20)
-        .attr("y", function (d, i) { return 21 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
-        .style("fill", function (d) { return zScale(d) })
-        .text(function (d) { return d })
+        .attr("y", (d, i) => { return 21 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
+        .style("fill", d => { return zScale(d[0]) })
+        .text(d => { return d[0] + " (" + million(d[1]) + " mil.)" })
         .style("alignment-baseline", "middle");
 
     // add lines byLocation
@@ -164,5 +176,5 @@ var chart = function (raw, value) {
     loc.append("path")
         .attr("class", "line")
         .attr("d", d => { return line(d.values); })
-        .style("stroke", function (d) { return zScale(d.location) });
+        .style("stroke", d => { return zScale(d.location) });
 }

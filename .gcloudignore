@@ -15,6 +15,7 @@
 
 # Ignored by the build system
 .vscode
+data
 node_modules
 webpack.config
 src
