@@ -5,10 +5,6 @@ var margin = { top: 20, right: 50, bottom: 40, left: 50 },
     width = W - margin.left - margin.right,
     height = H - margin.top - margin.bottom;
 
-// parse the date / time
-var parseDate = d3.timeParse("%Y-%m-%d");
-var fromDate = "2020-03-01"
-
 var locations = {
     "Serbia": 6.804596,
     "Slovenia": 2.078932,
@@ -21,14 +17,18 @@ var locations = {
 };
 var countries = Object.keys(locations);
 
+var fromDate = "2020-03-01"
+var dateFormat = d3.timeFormat("%d.%m.%Y");
+var numberFormat = d3.format(",.2f")
+var parseDate = d3.timeParse("%Y-%m-%d");
+
 d3.csv("https://covid.ourworldindata.org/data/ecdc/full_data.csv").then(raw => {
-    chart(raw, "total_cases", true, false, "1,", "Total cases / per million");
-    chart(raw, "new_cases", true, false, "1,", "Daily cases / per million");
-    chart(raw, "new_deaths", true, false, "1,", "Daily deaths / per million");
-    chart(raw, "total_deaths", false, true, ",.0%", "Total deaths / total cases");
+    chart(raw, "total_cases", true, d3.format("1,"), "Total cases / per million");
+    chart(raw, "new_cases", true, d3.format("1,"), "Daily cases / per million");
+    chart(raw, "total_deaths", false, d3.format(",.1%"), "Total deaths / total cases");
 });
 
-var chart = function (raw, value, perMillion, scaleLinear, axesFormat, title) {
+var chart = function (raw, value, perMillion, axesFormat, title) {
     var data = raw.filter(d => {
         return countries.indexOf(d.location) >= 0 && +d[value] > 0
     }).map(d => {
@@ -53,10 +53,10 @@ var chart = function (raw, value, perMillion, scaleLinear, axesFormat, title) {
     var xScale = d3.scaleTime()
         .domain(d3.extent(data, d => { return d.date })).nice()
         .rangeRound([0, width]);
-    if (scaleLinear) {
-        var yScale = d3.scaleLinear();
-    } else {
+    if (perMillion) {
         var yScale = d3.scaleLog();
+    } else {
+        var yScale = d3.scaleLinear();
     }
     yScale.domain([
         d3.min(byLocation, c => {
@@ -75,9 +75,7 @@ var chart = function (raw, value, perMillion, scaleLinear, axesFormat, title) {
         .domain(byLocation.map(c => { return c.location; }));
 
     var latest = d3.max(data, d => { return d.date });
-    var dateTime = d3.timeFormat("%d.%m.%Y %H:%M");
-    document.getElementById("latest").innerHTML = dateTime(latest);
-    var million = d3.format(",.1f")
+    document.getElementById("latest").innerHTML = dateFormat(latest);
 
     // line generator
     var line = d3.line()
@@ -113,13 +111,13 @@ var chart = function (raw, value, perMillion, scaleLinear, axesFormat, title) {
         .attr("class", "axes")
         .call(d3.axisLeft(yScale)
             .ticks(5)
-            .tickFormat(d3.format(axesFormat)));
+            .tickFormat(axesFormat));
     svg.append("g")
         .attr("class", "axes")
         .attr("transform", "translate(" + width + ", 0)")
         .call(d3.axisRight(yScale)
             .ticks(5)
-            .tickFormat(d3.format(axesFormat)));
+            .tickFormat(axesFormat));
 
     // add gridlines
     svg.append("g")
@@ -164,8 +162,24 @@ var chart = function (raw, value, perMillion, scaleLinear, axesFormat, title) {
         .attr("x", 20)
         .attr("y", (d, i) => { return 21 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
         .style("fill", d => { return zScale(d[0]) })
-        .text(d => { return d[0] + " (" + million(d[1]) + " mil.)" })
+        .text(d => { return d[0] + " (" + numberFormat(d[1]) + " mil.)" })
         .style("alignment-baseline", "middle");
+
+    svg.selectAll(".dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class", "dot")
+        .attr("cx", d => { return xScale(d.date) })
+        .attr("cy", d => { return yScale(d.total) })
+        .attr("r", 4)
+        .style("fill", d => { return zScale(d.location) })
+        .append("title")
+        .text(d => {
+            return (perMillion) ?
+                d.location + "\n" + dateFormat(d.date) + "\n" + numberFormat(d.total) :
+                d.location + "\n" + dateFormat(d.date) + "\n" + axesFormat(d.total)
+        });
 
     // add lines byLocation
     var loc = svg.selectAll(".location")
