@@ -24,8 +24,9 @@ module.exports = {
         new webpack.HotModuleReplacementPlugin({})
     ],
     output: {
-        filename: 'main.[hash].js',
         path: path.resolve(__dirname, 'dist'),
+        filename: 'main.[hash].js',
+        library: 'mda'
     },
     module: {
         rules: [

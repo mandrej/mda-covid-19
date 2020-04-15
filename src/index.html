@@ -5,7 +5,20 @@
 
 <body>
     <h1>COVID-19 pandemic on <span id="latest"></span> 00:00</h1>
-    <p>by milan andrejevic, data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>
+    <p>by milan andrejevic, data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in
+            Data</a>
+    </p>
+    <p>
+        <legend>Choose country:</legend>
+        <input type="checkbox" name="country" value="Serbia" checked="true" onclick="mda.draw()">Serbia
+        <input type="checkbox" name="country" value="Slovenia" checked="true" onclick="mda.draw()">Slovenia
+        <input type="checkbox" name="country" value="Croatia" checked="true" onclick="mda.draw()">Croatia
+        <input type="checkbox" name="country" value="Romania" onclick="mda.draw()">Romania
+        <input type="checkbox" name="country" value="Spain" onclick="mda.draw()">Spain
+        <input type="checkbox" name="country" value="Italy" onclick="mda.draw()">Italy
+        <input type="checkbox" name="country" value="Germany" onclick="mda.draw()">Germany
+        <input type="checkbox" name="country" value="United States" onclick="mda.draw()">United States
+        <input type="checkbox" name="country" value="China" onclick="mda.draw()">China
     </p>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-8994922-4"></script>
     <script>

@@ -1,6 +1,5 @@
-body,
-text {
-    font: 12px sans-serif;
+body, text {
+    font-family: sans-serif;
 }
 .line {
     fill: none;
