@@ -26,6 +26,25 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
     const data = raw.filter(d => {
         return countries.indexOf(d.location) >= 0 && +d["new_cases"] > 0
     }).map(d => {
+        // patching
+        if (d.date === '2020-04-14' && d.location === 'Serbia') {
+            d.new_cases = '424';
+            d.new_deaths = '5';
+            d.total_cases = '4054';
+            d.total_deaths = '85';
+        }
+        if (d.date === '2020-04-15' && d.location === 'Serbia') {
+            d.new_cases = '411';
+            d.new_deaths = '9';
+            d.total_cases = '4465';
+            d.total_deaths = '94';
+        }
+        if (d.date === '2020-04-16' && d.location === 'Serbia') {
+            d.new_cases = '408';
+            d.new_deaths = '5';
+            d.total_cases = '4873';
+            d.total_deaths = '99';
+        }
         return {
             location: d.location,
             date: parseDate(d.date),

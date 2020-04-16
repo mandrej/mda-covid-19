@@ -31,7 +31,7 @@ export function draw () {
 
     d3.csv("https://covid.ourworldindata.org/data/ecdc/full_data.csv").then(raw => {
         d3.selectAll("svg").remove();
-
+        //   (countries, raw, value, perMillion, axesFormat, title)
         chart(countries, raw, "total_cases", true, d3.format("1,"), title[1]);
         chart(countries, raw, "new_cases", true, d3.format("1,"), title[2]);
         chart(countries, raw, "total_deaths", false, d3.format(",.1%"), title[3]);
