@@ -1,18 +1,28 @@
 import * as d3 from "d3";
 
-export default function (locations, raw, value, perMillion, axesFormat, title) {
-    var margin = { top: 20, right: 50, bottom: 40, left: 50 },
-        W = 800, H = 500,
-        width = W - margin.left - margin.right,
-        height = H - margin.top - margin.bottom;
+const margin = { top: 20, right: 50, bottom: 40, left: 50 },
+    W = 800, H = 500,
+    width = W - margin.left - margin.right,
+    height = H - margin.top - margin.bottom;
 
-    var fromDate = "2020-01-01";
-    var dateFormat = d3.timeFormat("%d.%m.%Y");
-    var numberFormat = d3.format(",.2f")
-    var parseDate = d3.timeParse("%Y-%m-%d");
+const dateFormat = d3.timeFormat("%d.%m.%Y");
+const numberFormat = d3.format(",.2f")
+const parseDate = d3.timeParse("%Y-%m-%d");
 
-    var countries = Object.keys(locations);
-    var data = raw.filter(d => {
+const locations = {
+    "Serbia": 6.804596,
+    "Slovenia": 2.078932,
+    "Croatia": 4.105268,
+    "Romania": 19.237682,
+    "Spain": 46.754783,
+    "Italy": 60.461828,
+    "Germany": 83.783945,
+    "United States": 331.002647,
+    "China": 1439.323774
+}
+
+export default function (countries, raw, value, perMillion, axesFormat, title) {
+    const data = raw.filter(d => {
         return countries.indexOf(d.location) >= 0 && +d["new_cases"] > 0
     }).map(d => {
         return {
@@ -20,10 +30,8 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
             date: parseDate(d.date),
             total: (perMillion) ? +d[value] / locations[d.location] : +d[value] / +d["total_cases"]
         }
-    }).filter(d => {
-        return d.date >= parseDate(fromDate)
     });
-    var byLocation = countries.map(loc => {
+    const byLocation = countries.map(loc => {
         return {
             location: loc,
             values: data.filter(d => {
@@ -33,13 +41,14 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
     });
 
     // set the ranges
-    var xScale = d3.scaleTime()
+    const xScale = d3.scaleTime()
         .domain(d3.extent(data, d => { return d.date })).nice()
         .rangeRound([0, width]);
+    let yScale;
     if (perMillion) {
-        var yScale = d3.scaleLog();
+        yScale = d3.scaleLog();
     } else {
-        var yScale = d3.scaleLinear();
+        yScale = d3.scaleLinear();
     }
     yScale.domain([
         d3.min(byLocation, c => {
@@ -54,14 +63,14 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
         })
     ]).nice()
         .range([height, 0]);
-    var zScale = d3.scaleOrdinal(d3.schemeCategory10)
+    const zScale = d3.scaleOrdinal(d3.schemeCategory10)
         .domain(byLocation.map(c => { return c.location; }));
 
-    var latest = d3.max(data, d => { return d.date });
+    const latest = d3.max(data, d => { return d.date });
     document.getElementById("latest").innerHTML = dateFormat(latest);
 
     // line generator
-    var line = d3.line()
+    const line = d3.line()
         .x((d, i) => { return xScale(d.date); })
         .y(d => { return yScale(d.total); })
         .curve(d3.curveBasis);
@@ -76,7 +85,7 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
             .ticks(10)
     };
 
-    var svg = d3.select("body").append("svg")
+    const svg = d3.select("body").append("svg")
         // .attr("width", W)
         // .attr("height", H)
         .attr("preserveAspectRatio", "xMinYMin meet")
@@ -123,7 +132,7 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
         .text("date");
 
     // add legend
-    var legend = svg.append("g")
+    const legend = svg.append("g")
         .attr("class", "legend")
         .attr("transform", "translate(" + (margin.left - 30) + "," + (margin.top + 20) + ")");
     legend.append("text")
@@ -138,14 +147,14 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
         .attr("r", 7)
         .style("fill", d => { return zScale(d) });
     legend.selectAll(".country")
-        .data(Object.entries(locations))
+        .data(countries)
         .enter()
         .append("text")
         .attr("class", "country")
         .attr("x", 20)
         .attr("y", (d, i) => { return 21 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
         .style("fill", d => { return zScale(d[0]) })
-        .text(d => { return d[0] + " (" + numberFormat(d[1]) + " mil.)" })
+        .text(d => { return d + " (" + numberFormat(locations[d]) + " mil.)" })
         .style("font-size", "14px")
         .style("alignment-baseline", "middle");
 
@@ -166,7 +175,7 @@ export default function (locations, raw, value, perMillion, axesFormat, title) {
         });
 
     // add lines byLocation
-    var loc = svg.selectAll(".location")
+    const loc = svg.selectAll(".location")
         .data(byLocation)
         .enter().append("g")
         .attr("class", "location");
