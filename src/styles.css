@@ -1,6 +1,9 @@
 body, text {
     font-family: sans-serif;
 }
+body, svg {
+    background-color: #fff;
+}
 .line {
     fill: none;
     stroke-width: 2;

@@ -9,7 +9,7 @@
             Data</a>
     </p>
     <p>
-        <legend>Choose country:</legend>
+        Choose country:&nbsp;
         <input type="checkbox" name="country" value="Serbia" checked="true" onclick="mda.draw()">Serbia
         <input type="checkbox" name="country" value="Slovenia" checked="true" onclick="mda.draw()">Slovenia
         <input type="checkbox" name="country" value="Croatia" checked="true" onclick="mda.draw()">Croatia
@@ -19,6 +19,11 @@
         <input type="checkbox" name="country" value="Germany" onclick="mda.draw()">Germany
         <input type="checkbox" name="country" value="United States" onclick="mda.draw()">United States
         <input type="checkbox" name="country" value="China" onclick="mda.draw()">China
+
+        <br>Export as image:&nbsp;
+        <button type="button" onclick="mda.save(1)">grpah 1</button>
+        <button type="button" onclick="mda.save(2)">grpah 2</button>
+        <button type="button" onclick="mda.save(3)">grpah 3</button>
     </p>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-8994922-4"></script>
     <script>

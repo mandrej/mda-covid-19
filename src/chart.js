@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-const margin = { top: 20, right: 50, bottom: 40, left: 50 },
+const margin = { top: 20, right: 50, bottom: 50, left: 50 },
     W = 800, H = 500,
     width = W - margin.left - margin.right,
     height = H - margin.top - margin.bottom;
@@ -20,8 +20,9 @@ const locations = {
     "United States": 331.002647,
     "China": 1439.323774
 }
-
+let count = 0;
 export default function (countries, raw, value, perMillion, axesFormat, title) {
+    count++;
     const data = raw.filter(d => {
         return countries.indexOf(d.location) >= 0 && +d["new_cases"] > 0
     }).map(d => {
@@ -88,12 +89,13 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
     const svg = d3.select("body").append("svg")
         // .attr("width", W)
         // .attr("height", H)
+        .attr("id", "g" + count)
         .attr("preserveAspectRatio", "xMinYMin meet")
         .attr("viewBox", "0 0 " + W + " " + H)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // add axis
+    // add axis 
     svg.append("g")
         .attr("class", "axes")
         .attr("transform", "translate(0," + height + ")")
@@ -130,6 +132,11 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
         .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.top + 20) + ")")
         .style("text-anchor", "middle")
         .text("date");
+    svg.append("text")
+        .attr("class", "label")
+        .attr("transform", "translate(" + width + " ," + (height + margin.top + 20) + ")")
+        .style("text-anchor", "end")
+        .text("© https://mda-covid-19.appspot.com/");
 
     // add legend
     const legend = svg.append("g")
