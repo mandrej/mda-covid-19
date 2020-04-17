@@ -171,22 +171,22 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
         .style('font-size', '20px')
         .text(title);
     legend.selectAll('circle')
-        .data(countries)
+        .data(byLocation)
         .enter()
         .append('circle')
         .attr('cx', 10)
         .attr('cy', (d, i) => { return 20 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
         .attr('r', 7)
-        .style('fill', d => { return zScale(d) });
+        .style('fill', d => { return zScale(d.location) });
     legend.selectAll('.country')
-        .data(countries)
+        .data(byLocation)
         .enter()
         .append('text')
         .attr('class', 'country')
         .attr('x', 20)
         .attr('y', (d, i) => { return 21 + i * 20 }) // 100 is where the first dot appears. 25 is the distance between dots
-        .style('fill', d => { return zScale(d[0]) })
-        .text(d => { return d + ' (' + numberFormat(locations[d]) + ' mil.)' })
+        .style('fill', d => { return zScale(d.location) })
+        .text(d => { return d.location + ' (' + numberFormat(locations[d.location]) + ' mil.)' })
         .style('font-size', '14px')
         .style('alignment-baseline', 'middle');
 
