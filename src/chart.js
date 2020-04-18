@@ -13,6 +13,7 @@ const locations = {
     'Serbia': 6.804596,
     'Slovenia': 2.078932,
     'Croatia': 4.105268,
+    'Sweden': 10.099270,
     'Romania': 19.237682,
     'Spain': 46.754783,
     'Italy': 60.461828,
