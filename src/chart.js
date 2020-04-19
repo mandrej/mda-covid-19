@@ -45,9 +45,10 @@ const patching = function (d) {
     return d
 }
 
-let count = 0;
-export default function (countries, raw, value, perMillion, axesFormat, title) {
-    count++;
+export default function (num, countries, raw, description, axesFormat, title) {
+    const [value, million] = description.split('/');
+    const perMillion = million === 'million';
+
     const data = raw.filter(d => {
         patching(d);
         return countries.indexOf(d.location) >= 0 && +d['new_cases'] > 0
@@ -115,7 +116,7 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
     const svg = d3.select('body').append('svg')
         // .attr('width', W)
         // .attr('height', H)
-        .attr('id', 'g' + count)
+        .attr('id', 'g' + num)
         .attr('preserveAspectRatio', 'xMinYMin meet')
         .attr('viewBox', '0 0 ' + W + ' ' + H)
         .append('g')
@@ -191,6 +192,7 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
         .style('font-size', '14px')
         .style('alignment-baseline', 'middle');
 
+    // add dots
     svg.selectAll('.dot')
         .data(data)
         .enter()
@@ -208,12 +210,11 @@ export default function (countries, raw, value, perMillion, axesFormat, title) {
         });
 
     // add lines byLocation
-    const loc = svg.selectAll('.location')
+    svg.selectAll('.location')
         .data(byLocation)
         .enter().append('g')
-        .attr('class', 'location');
-
-    loc.append('path')
+        .attr('class', 'location')
+        .append('path')
         .attr('class', 'line')
         .attr('d', d => { return line(d.values); })
         .style('stroke', d => { return zScale(d.location) });
