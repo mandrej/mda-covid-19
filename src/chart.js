@@ -92,7 +92,7 @@ export default function (num, countries, raw, description, axesFormat, title) {
     ]).nice()
         .range([height, 0]);
     const zScale = d3.scaleOrdinal(d3.schemeCategory10)
-        .domain(byLocation.map(c => { return c.location; }));
+        .domain(Object.entries(locations).map(d => { return d[0]; }));
 
     const latest = d3.max(data, d => { return d.date });
     document.getElementById('latest').innerHTML = dateFormat(latest);
