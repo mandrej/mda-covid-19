@@ -92,7 +92,7 @@ export default function (num, countries, raw, description, axesFormat, title) {
     ]).nice()
         .range([height, 0]);
     const zScale = d3.scaleOrdinal(d3.schemeCategory10)
-        .domain(Object.entries(locations).map(d => { return d[0]; }));
+        .domain(Object.keys(locations).map(d => { return d; }));
 
     const latest = d3.max(data, d => { return d.date });
     document.getElementById('latest').innerHTML = dateFormat(latest);
@@ -103,19 +103,21 @@ export default function (num, countries, raw, description, axesFormat, title) {
         .y(d => { return yScale(d.total); })
         .curve(d3.curveBasis);
 
+    // axes generators
+    const [min, max] = yScale.domain();
+    const per = (perMillion) ? Math.log10(max / min) : 5;
+    const xAxes = d3.axisBottom(xScale).tickFormat(d3.timeFormat('%d.%m')).tickPadding(5);
+    const yLeftAxes = d3.axisLeft(yScale).ticks(per).tickFormat(axesFormat).tickPadding(5);
+    const yRightAxes = d3.axisRight(yScale).ticks(per).tickFormat(axesFormat).tickPadding(5);
     // gridlines generator
     function make_x_gridlines () {
-        return d3.axisBottom(xScale)
-            .ticks(10)
+        return d3.axisBottom(xScale).ticks(10).tickSize(-height).tickFormat('')
     };
     function make_y_gridlines () {
-        return d3.axisLeft(yScale)
-            .ticks(10)
+        return d3.axisLeft(yScale).ticks(10).tickSize(-width).tickFormat('')
     };
 
     const svg = d3.select('body').append('svg')
-        // .attr('width', W)
-        // .attr('height', H)
         .attr('id', 'g' + num)
         .attr('preserveAspectRatio', 'xMinYMin meet')
         .attr('viewBox', '0 0 ' + W + ' ' + H)
@@ -126,32 +128,23 @@ export default function (num, countries, raw, description, axesFormat, title) {
     svg.append('g')
         .attr('class', 'axes')
         .attr('transform', 'translate(0,' + height + ')')
-        .call(d3.axisBottom(xScale)
-            .tickFormat(d3.timeFormat('%d.%m')));
+        .call(xAxes);
     svg.append('g')
         .attr('class', 'axes')
-        .call(d3.axisLeft(yScale)
-            .ticks(5)
-            .tickFormat(axesFormat));
+        .call(yLeftAxes);
     svg.append('g')
         .attr('class', 'axes')
         .attr('transform', 'translate(' + width + ', 0)')
-        .call(d3.axisRight(yScale)
-            .ticks(5)
-            .tickFormat(axesFormat));
+        .call(yRightAxes);
 
     // add gridlines
     svg.append('g')
         .attr('class', 'grid')
         .attr('transform', 'translate(0,' + height + ')')
-        .call(make_x_gridlines()
-            .tickSize(-height)
-            .tickFormat(''));
+        .call(make_x_gridlines());
     svg.append('g')
         .attr('class', 'grid')
-        .call(make_y_gridlines()
-            .tickSize(-width)
-            .tickFormat(''));
+        .call(make_y_gridlines());
 
     // add x-label
     svg.append('text')
