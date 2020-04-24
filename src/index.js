@@ -3,9 +3,9 @@ import chart from './chart';
 import d3ToPng from 'd3-svg-to-png';
 
 const graphs = [
-    { description: 'total_cases/million', axes: d3.format('1,'), title: 'Total cases / per million' },
     { description: 'new_cases/million', axes: d3.format('1,'), title: 'Daily cases / per million' },
-    { description: 'total_deaths/total_cases', axes: d3.format(',.1%'), title: 'Total deaths / total cases' }
+    { description: 'total_deaths/total_cases', axes: d3.format(',.1%'), title: 'Total deaths / total cases' },
+    { description: 'total_cases/million', axes: d3.format('1,'), title: 'Total cases / per million' },
 ]
 
 const choose = function () {
