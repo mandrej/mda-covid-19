@@ -1,39 +1,43 @@
-<!DOCTYPE html>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 <meta charset="utf-8">
 <title>COVID-19 pandemic</title>
-<link rel="stylesheet" href="/styles.css">
 
 <body>
-    <h1>COVID-19 pandemic on <span id="latest"></span> 00:00</h1>
-    <p>by <a href="https://twitter.com/mandrej">milan andrejevic</a>, data from <a
-            href="https://ourworldindata.org/coronavirus-source-data">Our World in
-            Data</a>
-    </p>
-    <p>
-        Choose country:&nbsp;
-        <input type="checkbox" name="country" value="Serbia" checked="true" onclick="mda.draw()">Serbia
-        <input type="checkbox" name="country" value="Slovenia" checked="true" onclick="mda.draw()">Slovenia
-        <input type="checkbox" name="country" value="Croatia" checked="true" onclick="mda.draw()">Croatia
-        <input type="checkbox" name="country" value="Bulgaria" onclick="mda.draw()">Bulgaria
-        <input type="checkbox" name="country" value="Greece" onclick="mda.draw()">Greece
-        <!-- <input type="checkbox" name="country" value="Sweden" onclick="mda.draw()">Sweden -->
-        <input type="checkbox" name="country" value="Romania" onclick="mda.draw()">Romania
-        <input type="checkbox" name="country" value="Spain" onclick="mda.draw()">Spain
-        <input type="checkbox" name="country" value="Italy" onclick="mda.draw()">Italy
-        <input type="checkbox" name="country" value="Germany" onclick="mda.draw()">Germany
-        <input type="checkbox" name="country" value="United States" onclick="mda.draw()">United States
-        <!-- <input type="checkbox" name="country" value="China" onclick="mda.draw()">China -->
-
-        <br>Export as image:&nbsp;
-        <button type="button" onclick="mda.save(1)">grpah 1</button>
-        <button type="button" onclick="mda.save(2)">grpah 2</button>
-        <button type="button" onclick="mda.save(3)">grpah 3</button>
-    </p>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-8994922-4"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'UA-8994922-4');
-    </script>
+    <div class="container-fluid">
+        <h3 class="d-inline-block mt-3 p-2 bg-secondary text-light">COVID-19 pandemic</h3>
+        <p class="m-0">by <a href="https://twitter.com/mandrej">milan andrejevic</a>,
+            data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>.
+            Updated <span id="latest">20.04.2020</span>
+        </p>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="position-relative" style="height: 42vh">
+                    <canvas id="chart1"></canvas>
+                    <div class="position-absolute" style="top:0; right: 0;">
+                        <a id="download1" class="btn btn-primary btn-sm" href="#" role="button"
+                            download="daily_cases_per_million.png">download chart</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-lg-6">
+                <div class="position-relative" style="height: 42vh">
+                    <canvas id="chart2"></canvas>
+                    <div class="position-absolute" style="top:0; right: 0;">
+                        <a id="download2" class="btn btn-primary btn-sm" href="#" role="button"
+                            download="total_deaths_per_total_cases.png">download chart</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12 col-lg-6">
+                <div class="position-relative" style="height: 42vh">
+                    <canvas id="chart3"></canvas>
+                    <div class="position-absolute" style="top:0; right: 0;">
+                        <a id="download3" class="btn btn-primary btn-sm" href="#" role="button"
+                            download="total_cases_per_million.png">download chart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
