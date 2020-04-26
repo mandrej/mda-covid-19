@@ -226,16 +226,24 @@ Chart.defaults.global.legend.position = 'right';
 Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
-// Chart.defaults.global.elements.point.radius = 0;
 Chart.defaults.global.legend.labels.boxWidth = 12;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
 
+function exportUrl (id) {
+    const canvas = document.getElementById(id);
+    const context = canvas.getContext('2d');
+    context.globalCompositeOperation = 'destination-over';
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+}
+
 document.getElementById("download1").addEventListener('click', function () {
-    this.href = document.getElementById("chart1").toDataURL("image/png");
+    this.href = exportUrl('chart1');
 });
 document.getElementById("download2").addEventListener('click', function () {
-    this.href = document.getElementById("chart2").toDataURL("image/png");
+    this.href = exportUrl('chart2');
 });
 document.getElementById("download3").addEventListener('click', function () {
-    this.href = document.getElementById("chart3").toDataURL("image/png");
+    this.href = exportUrl('chart3');
 });
