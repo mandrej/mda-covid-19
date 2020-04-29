@@ -60,6 +60,9 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
             displayFormats: {
                 week: 'DD.MMM'
             }
+        },
+        ticks: {
+            min: moment('2020-03-01', 'YYYY-MM-DD')
         }
     }];
 
