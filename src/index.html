@@ -3,52 +3,23 @@
 <title>COVID-19 pandemic</title>
 
 <body>
-    <div class="container-fluid">
-        <h3 class="d-inline-block mt-3 p-2 bg-secondary text-light">COVID-19 pandemic</h3>
-        <p class="m-0">by <a href="https://twitter.com/mandrej">milan andrejevic</a>,
-            data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>.
-            Updated <span id="latest">20.04.2020</span>
-        </p>
-        <div class="container">
-            <div class="box">
-                <canvas id="chart1"></canvas>
-            </div>
-            <div>
-                <canvas id="chart2"></canvas>
-            </div>
-            <div>
-                <canvas id="chart3"></canvas>
-            </div>
+    <h1>COVID-19 pandemic</h1>
+    <p>by <a href="https://twitter.com/mandrej">milan andrejevic</a>,
+        data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>.
+        Updated <span id="latest">27.04.2020</span>
+    </p>
+    <div class="container">
+        <div class="main box">
+            <canvas id="chart1"></canvas>
+            <a id="download1" class="btn" href="#" download="daily_cases_per_million.png">download chart</a>
         </div>
-
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="position-relative" style="height: 450px">
-                    <canvas id="chart1"></canvas>
-                    <div class="position-absolute" style="top:0; right: 0;">
-                        <a id="download1" class="btn btn-primary btn-sm" href="#" role="button"
-                            download="daily_cases_per_million.png">download chart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-12 col-lg-6">
-                <div class="position-relative" style="height: 450px">
-                    <canvas id="chart2"></canvas>
-                    <div class="position-absolute" style="top:0; right: 0;">
-                        <a id="download2" class="btn btn-primary btn-sm" href="#" role="button"
-                            download="total_deaths_per_total_cases.png">download chart</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-12 col-lg-6">
-                <div class="position-relative" style="height: 450px">
-                    <canvas id="chart3"></canvas>
-                    <div class="position-absolute" style="top:0; right: 0;">
-                        <a id="download3" class="btn btn-primary btn-sm" href="#" role="button"
-                            download="total_cases_per_million.png">download chart</a>
-                    </div>
-                </div>
-            </div>
+        <div class="box">
+            <canvas id="chart2"></canvas>
+            <a id="download2" class="btn" href="#" download="total_deaths_per_total_cases.png">download chart</a>
+        </div>
+        <div class="box">
+            <canvas id="chart3"></canvas>
+            <a id="download3" class="btn" href="#" download="total_cases_per_million.png">download chart</a>
         </div>
     </div>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-8994922-4"></script>
