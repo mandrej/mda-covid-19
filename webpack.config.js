@@ -11,8 +11,8 @@ module.exports = {
     plugins: [
         new CopyPlugin([
             {
-                from: './src/index.css',
-                to: './index.css',
+                from: './src/styles.css',
+                to: './styles.css',
             }
         ]),
         new CleanWebpackPlugin(),
