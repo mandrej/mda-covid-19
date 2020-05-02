@@ -70,7 +70,6 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
 
     const charts = {
         'daily_cases_per_million': {
-            legend: true,
             yAxes: [{
                 type: 'logarithmic',
                 ticks: {
@@ -94,7 +93,6 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
             mul: 10
         },
         'total_deaths_per_total_cases': {
-            legend: false,
             yAxes: [{
                 type: 'linear',
                 ticks: {
@@ -116,7 +114,6 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
             mul: 1000
         },
         'total_cases_per_million': {
-            legend: false,
             yAxes: [{
                 type: 'logarithmic',
                 ticks: {
@@ -151,17 +148,15 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         },
         options: {
             legend: {
-                display: charts[id].legend,
                 onClick: function (event, item) {
-                    const country = item.text;
-                    const exist = shown.includes(country);
+                    const idx = shown.indexOf(item.text);
                     if (item.hidden) {
-                        if (!exist) {
-                            shown.push(country)
+                        if (idx === -1) {
+                            shown.push(item.text)
                         }
                     } else {
-                        if (exist) {
-                            shown = shown.filter(s => s !== country)
+                        if (idx !== -1) {
+                            shown.splice(idx, 1)
                         }
                     }
                     Chart.defaults.global.legend.onClick.call(this, event, item);
@@ -187,8 +182,9 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         id = event.target.value;
 
         graph.data.datasets = charts[id].datasets;
-        graph.data.datasets.forEach(dataset => {
-            dataset.hidden = (shown.includes(dataset.label)) ? false : true
+        graph.data.datasets.forEach((dataset, i) => {
+            let meta = graph.getDatasetMeta(i);
+            meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
         graph.options.scales.yAxes = charts[id].yAxes;
         graph.update({
@@ -210,11 +206,11 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
 
 Chart.defaults.global.responsive = true;
 // Chart.defaults.global.maintainAspectRatio = false;
-Chart.defaults.global.legend.display = false;
+Chart.defaults.global.legend.display = true;
 Chart.defaults.global.legend.align = 'end';
 Chart.defaults.global.legend.position = 'right';
+Chart.defaults.global.legend.labels.boxWidth = 12;
 Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
-Chart.defaults.global.legend.labels.boxWidth = 12;
-Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
+Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau20';
