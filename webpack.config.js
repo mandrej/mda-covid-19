@@ -28,6 +28,9 @@ module.exports = {
         filename: 'main.[hash].js',
         library: 'mda'
     },
+    performance: {
+        hints: process.env.NODE_ENV === 'production' ? "warning" : false
+    },
     module: {
         rules: [
             {

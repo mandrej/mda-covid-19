@@ -10,7 +10,7 @@ const locations = {
     'Croatia': 4.105268,
     'Bulgaria': 6.948445,
     'Greece': 10.423056,
-    // 'Sweden': 10.099270,
+    'Sweden': 10.099270,
     'Romania': 19.237682,
     'Spain': 46.754783,
     'Italy': 60.461828,
@@ -18,6 +18,8 @@ const locations = {
     'United States': 331.002647,
     // 'China': 1439.323774
 }
+let id = document.querySelector('#selected option:checked').value;
+let shown = ['Serbia'];
 
 function parse (csv) {
     const result = [];
@@ -43,9 +45,9 @@ function parse (csv) {
         }
         result.push(obj);
     }
-    return result;
+    return result
 }
-
+const ctx = document.getElementById('chart').getContext('2d');
 axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp => {
     const raw = parse(resp.data);
     const data = raw.filter(d => {
@@ -66,151 +68,114 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         }
     }];
 
-    const yLogAxes = [{
-        type: 'logarithmic',
-        ticks: {
-            min: 0.1,
-            autoSkipPadding: 14,
-            callback: function (value, index, values) {
-                return Number(value.toString())
-            }
-        }
-    }];
-
-    const datasets1 = Object.keys(locations).map(country => {
-        return {
-            label: country,
-            data: data.filter(d => {
-                return d.location === country
-            }).map(d => {
-                return { x: d.date, y: d.new_cases / locations[country] }
+    const charts = {
+        'daily_cases_per_million': {
+            legend: true,
+            yAxes: [{
+                type: 'logarithmic',
+                ticks: {
+                    min: 0.1,
+                    autoSkipPadding: 14,
+                    callback: function (value, index, values) {
+                        return Number(value.toString())
+                    }
+                }
+            }],
+            datasets: Object.keys(locations).map(country => {
+                return {
+                    label: country,
+                    data: data.filter(d => d.location === country)
+                        .map(d => {
+                            return { x: d.date, y: d.new_cases / locations[country] }
+                        }),
+                    hidden: (shown.includes(country)) ? false : true
+                }
             }),
-            hidden: (country === 'Serbia') ? false : true
+            mul: 10
+        },
+        'total_deaths_per_total_cases': {
+            legend: false,
+            yAxes: [{
+                type: 'linear',
+                ticks: {
+                    callback: function (value, index, values) {
+                        return Math.round(value * 1000) / 10 + '%';
+                    }
+                }
+            }],
+            datasets: Object.keys(locations).map(country => {
+                return {
+                    label: country,
+                    data: data.filter(d => d.location === country)
+                        .map(d => {
+                            return { x: d.date, y: d.total_deaths / d.total_cases }
+                        }),
+                    hidden: (shown.includes(country)) ? false : true
+                }
+            }),
+            mul: 1000
+        },
+        'total_cases_per_million': {
+            legend: false,
+            yAxes: [{
+                type: 'logarithmic',
+                ticks: {
+                    min: 0.1,
+                    autoSkipPadding: 14,
+                    callback: function (value, index, values) {
+                        return Number(value.toString())
+                    }
+                }
+            }],
+            datasets: Object.keys(locations).map(country => {
+                return {
+                    label: country,
+                    data: data.filter(d => d.location === country)
+                        .map(d => {
+                            return { x: d.date, y: d.total_cases / locations[country] }
+                        }),
+                    hidden: (shown.includes(country)) ? false : true
+                }
+            }),
+            mul: 10
         }
-    });
-    const latest = datasets1[0].data.slice(-1)[0].x.format('DD.MM.YYYY');
+    }
+
+    const latest = charts[id].datasets[0].data.slice(-1)[0].x.format('DD.MM.YYYY');
     document.getElementById('latest').innerHTML = latest;
 
-    const datasets2 = Object.keys(locations).map(country => {
-        return {
-            label: country,
-            data: data.filter(d => {
-                return d.location === country
-            }).map(d => {
-                return { x: d.date, y: d.total_deaths / d.total_cases }
-            }),
-            hidden: (country === 'Serbia') ? false : true
-        }
-    });
-
-    const datasets3 = Object.keys(locations).map(country => {
-        return {
-            label: country,
-            data: data.filter(d => {
-                return d.location === country
-            }).map(d => {
-                return { x: d.date, y: d.total_cases / locations[country] }
-            }),
-            hidden: (country === 'Serbia') ? false : true
-        }
-    });
-
-    const chart1 = new Chart(document.getElementById('chart1').getContext('2d'), {
+    const graph = new Chart(ctx, {
         type: 'line',
         data: {
-            datasets: datasets1
+            datasets: charts[id].datasets
         },
         options: {
-            title: {
-                text: 'Daily cases / per million'
-            },
             legend: {
-                onClick: function (evt, item) {
-                    Chart.defaults.global.legend.onClick.call(chart1, evt, item)
-                    Chart.defaults.global.legend.onClick.call(chart2, evt, item)
-                    Chart.defaults.global.legend.onClick.call(chart3, evt, item)
-                }
-            },
-            scales: {
-                xAxes: xAxes,
-                yAxes: yLogAxes
-            },
-            tooltips: {
-                callbacks: {
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label + ' ';
-                        label += Math.round(tooltipItem.yLabel * 10) / 10;
-                        return label;
-                    }
-                }
-            }
-        }
-    });
-
-    const chart2 = new Chart(document.getElementById('chart2').getContext('2d'), {
-        type: 'line',
-        data: {
-            datasets: datasets2
-        },
-        options: {
-            title: {
-                text: 'Total deaths / total cases'
-            },
-            legend: {
-                onClick: function (evt, item) {
-                    Chart.defaults.global.legend.onClick.call(chart1, evt, item)
-                    Chart.defaults.global.legend.onClick.call(chart2, evt, item)
-                    Chart.defaults.global.legend.onClick.call(chart3, evt, item)
-                }
-            },
-            scales: {
-                xAxes: xAxes,
-                yAxes: [{
-                    type: 'linear',
-                    ticks: {
-                        callback: function (value, index, values) {
-                            return Math.round(value * 1000) / 10 + '%';
+                display: charts[id].legend,
+                onClick: function (event, item) {
+                    const country = item.text;
+                    const exist = shown.includes(country);
+                    if (item.hidden) {
+                        if (!exist) {
+                            shown.push(country)
+                        }
+                    } else {
+                        if (exist) {
+                            shown = shown.filter(s => s !== country)
                         }
                     }
-                }]
-            },
-            tooltips: {
-                callbacks: {
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label + ' ';
-                        label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
-                        return label;
-                    }
-                }
-            }
-        }
-    });
-
-    const chart3 = new Chart(document.getElementById('chart3').getContext('2d'), {
-        type: 'line',
-        data: {
-            datasets: datasets3
-        },
-        options: {
-            title: {
-                text: 'Total cases / per million'
-            },
-            legend: {
-                onClick: function (evt, item) {
-                    Chart.defaults.global.legend.onClick.call(chart1, evt, item)
-                    Chart.defaults.global.legend.onClick.call(chart2, evt, item)
-                    Chart.defaults.global.legend.onClick.call(chart3, evt, item)
+                    Chart.defaults.global.legend.onClick.call(this, event, item);
                 }
             },
             scales: {
                 xAxes: xAxes,
-                yAxes: yLogAxes
+                yAxes: charts[id].yAxes
             },
             tooltips: {
                 callbacks: {
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label + ' ';
-                        label += Math.round(tooltipItem.yLabel * 10) / 10;
+                        label += Math.round(tooltipItem.yLabel * charts[id].mul) / 10;
                         return label;
                     }
                 }
@@ -218,12 +183,34 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         }
     });
 
+    document.getElementById('selected').addEventListener('change', event => {
+        id = event.target.value;
+
+        graph.data.datasets = charts[id].datasets;
+        graph.data.datasets.forEach(dataset => {
+            dataset.hidden = (shown.includes(dataset.label)) ? false : true
+        });
+        graph.options.scales.yAxes = charts[id].yAxes;
+        graph.update({
+            duration: 800,
+            easing: 'easeInOutQuart'
+        })
+    })
+
+    document.getElementById('download').addEventListener('click', event => {
+        const canvas = document.getElementById('chart');
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        event.target.download = id + '.png';
+        event.target.href = canvas.toDataURL("image/png");
+    });
 });
 
 Chart.defaults.global.responsive = true;
-Chart.defaults.global.maintainAspectRatio = false;
-Chart.defaults.global.title.display = true;
-Chart.defaults.global.title.fontSize = 18;
+// Chart.defaults.global.maintainAspectRatio = false;
+Chart.defaults.global.legend.display = false;
 Chart.defaults.global.legend.align = 'end';
 Chart.defaults.global.legend.position = 'right';
 Chart.defaults.global.tooltips.mode = 'x';
@@ -231,22 +218,3 @@ Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
 Chart.defaults.global.legend.labels.boxWidth = 12;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
-
-function exportUrl (id) {
-    const canvas = document.getElementById(id);
-    const context = canvas.getContext('2d');
-    context.globalCompositeOperation = 'destination-over';
-    context.fillStyle = '#fff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/png");
-}
-
-document.getElementById("download1").addEventListener('click', function () {
-    this.href = exportUrl('chart1');
-});
-document.getElementById("download2").addEventListener('click', function () {
-    this.href = exportUrl('chart2');
-});
-document.getElementById("download3").addEventListener('click', function () {
-    this.href = exportUrl('chart3');
-});

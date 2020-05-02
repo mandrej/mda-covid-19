@@ -12,38 +12,28 @@ h1 {
     padding: 0.2em 0.3em;
     border-radius: 3px;
 }
-p { margin: 0; }
-.container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 28em);
-    grid-gap: 1em;
-}
+p { margin: 0.5em 0; }
 .box {
     position: relative;
-    padding-bottom: 28px;
 }
-.main { grid-column: 1 / 3; }
 canvas {
     position: absolute;
     width: 100%;
-    height: 100%;
 }
 .btn {
     position: absolute;
-    bottom: 0;
+    top: 0;
     right: 0;
     background-color: slategrey;
     color: white;
     text-decoration: none;
     padding: 0.2em 0.3em;
     border-radius: 3px;
+    z-index: 10;
 }
-@media only screen and (max-width: 64em) {
-    .container {
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(3, 32em);
-        grid-gap: 0;
-    }
-    .main { grid-column: 1 / 1; }
+#selected {
+    border: 0;
+    outline: 0;
+    font-size: 1.6em;
+    background-color: #fff;
 }

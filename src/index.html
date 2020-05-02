@@ -6,21 +6,18 @@
     <h1>COVID-19 pandemic</h1>
     <p>by <a href="https://twitter.com/mandrej">milan andrejevic</a>,
         data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>.
-        Updated <span id="latest">27.04.2020</span>
+        Updated <span id="latest">02.05.2020</span>
     </p>
-    <div class="container">
-        <div class="main box">
-            <canvas id="chart1"></canvas>
-            <a id="download1" class="btn" href="#" download="daily_cases_per_million.png">download chart</a>
-        </div>
-        <div class="box">
-            <canvas id="chart2"></canvas>
-            <a id="download2" class="btn" href="#" download="total_deaths_per_total_cases.png">download chart</a>
-        </div>
-        <div class="box">
-            <canvas id="chart3"></canvas>
-            <a id="download3" class="btn" href="#" download="total_cases_per_million.png">download chart</a>
-        </div>
+    <p>
+        <select id="selected">
+            <option value="daily_cases_per_million" selected>Daily cases / per million</option>
+            <option value="total_deaths_per_total_cases">Total deaths / total cases</option>
+            <option value="total_cases_per_million">Total cases / per million</option>
+        </select>
+    </p>
+    <div class="box">
+        <a id="download" class="btn" href="#" download="chart.png">save</a>
+        <canvas id="chart"></canvas>
     </div>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-8994922-4"></script>
     <script>
