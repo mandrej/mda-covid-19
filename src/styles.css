@@ -9,31 +9,27 @@ h1 {
     font-size: 2em;
     background-color: slategrey;
     color: white;
-    padding: 0.2em 0.3em;
+    padding: 0.2em 0.4em;
     border-radius: 3px;
 }
 p { margin: 0.5em 0; }
-.box {
-    position: relative;
-}
+.box { position: relative; }
 canvas {
     position: absolute;
     width: 100%;
-}
-.btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background-color: slategrey;
-    color: white;
-    text-decoration: none;
-    padding: 0.2em 0.3em;
-    border-radius: 3px;
-    z-index: 10;
 }
 #selected {
     border: 0;
     outline: 0;
     font-size: 1.6em;
-    background-color: #fff;
+    background-color: white;
+}
+#download {
+    float: right;
+    font-size: 1.2em;
+    background-color: slategrey;
+    color: white;
+    text-decoration: none;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
 }

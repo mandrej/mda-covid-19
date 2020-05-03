@@ -18,60 +18,64 @@ const locations = {
     'United States': 331.002647,
     // 'China': 1439.323774
 }
+
+axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv')
+    .then(resp => {
+        const parsed = [];
+        const lines = resp.data.split('\n');
+        const headers = lines[0].split(',');
+        for (let i = 1; i < lines.length; i++) {
+            let obj = {};
+            const currentline = lines[i].split(',');
+            for (let j = 0; j < headers.length; j++) {
+                switch (headers[j]) {
+                    case 'date':
+                        obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
+                        break
+                    case 'new_cases':
+                    case 'new_deaths':
+                    case 'total_cases':
+                    case 'total_deaths':
+                        obj[headers[j]] = +currentline[j];
+                        break
+                    default:
+                        obj[headers[j]] = currentline[j];
+                }
+            }
+            parsed.push(obj);
+        }
+        const data = parsed.filter(d => {
+            return Object.keys(locations).indexOf(d.location) >= 0 && d.total_cases > 0
+        });
+        main(data);
+    })
+    .catch(err => { alert(err); });
+
 let id = document.querySelector('#selected option:checked').value;
 let shown = ['Serbia'];
 
-function parse (csv) {
-    const result = [];
-    const lines = csv.split("\n");
-    const headers = lines[0].split(",");
-    for (let i = 1; i < lines.length; i++) {
-        let obj = {};
-        const currentline = lines[i].split(",");
-        for (let j = 0; j < headers.length; j++) {
-            switch (headers[j]) {
-                case 'date':
-                    obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
-                    break
-                case 'new_cases':
-                case 'new_deaths':
-                case 'total_cases':
-                case 'total_deaths':
-                    obj[headers[j]] = +currentline[j];
-                    break
-                default:
-                    obj[headers[j]] = currentline[j];
-            }
+const xAxes = [{
+    type: 'time',
+    time: {
+        unit: 'week',
+        isoWeekday: true,
+        displayFormats: {
+            week: 'DD.MMM'
         }
-        result.push(obj);
+    },
+    ticks: {
+        min: moment('2020-03-01', 'YYYY-MM-DD')
     }
-    return result
-}
+}];
+
 const ctx = document.getElementById('chart').getContext('2d');
-axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp => {
-    const raw = parse(resp.data);
-    const data = raw.filter(d => {
-        return Object.keys(locations).indexOf(d.location) >= 0 && d.total_cases > 0
-    });
 
-    const xAxes = [{
-        type: 'time',
-        time: {
-            unit: 'week',
-            isoWeekday: true,
-            displayFormats: {
-                week: 'DD.MMM'
-            }
-        },
-        ticks: {
-            min: moment('2020-03-01', 'YYYY-MM-DD')
-        }
-    }];
-
+function main (data) {
     const charts = {
         'daily_cases_per_million': {
             yAxes: [{
                 type: 'logarithmic',
+                position: 'right',
                 ticks: {
                     min: 0.1,
                     autoSkipPadding: 14,
@@ -95,6 +99,7 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         'total_deaths_per_total_cases': {
             yAxes: [{
                 type: 'linear',
+                position: 'right',
                 ticks: {
                     callback: function (value, index, values) {
                         return Math.round(value * 1000) / 10 + '%';
@@ -116,6 +121,7 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         'total_cases_per_million': {
             yAxes: [{
                 type: 'logarithmic',
+                position: 'right',
                 ticks: {
                     min: 0.1,
                     autoSkipPadding: 14,
@@ -202,7 +208,7 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv').then(resp 
         event.target.download = id + '.png';
         event.target.href = canvas.toDataURL("image/png");
     });
-});
+}
 
 Chart.defaults.global.responsive = true;
 // Chart.defaults.global.maintainAspectRatio = false;
@@ -213,4 +219,6 @@ Chart.defaults.global.legend.labels.boxWidth = 12;
 Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
+Chart.defaults.global.elements.point.radius = 5;
+Chart.defaults.global.elements.point.hoverRadius = 5;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau20';
