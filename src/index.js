@@ -4,22 +4,21 @@ import 'chartjs-adapter-moment';
 import 'chartjs-plugin-colorschemes';
 import moment from 'moment';
 
-const locations = {
-    'Serbia': 6.804596,
-    'Slovenia': 2.078932,
-    'Croatia': 4.105268,
-    'Bulgaria': 6.948445,
-    'Greece': 10.423056,
-    'Sweden': 10.099270,
-    'Romania': 19.237682,
-    'Spain': 46.754783,
-    'Italy': 60.461828,
-    'Germany': 83.783945,
-    'United States': 331.002647,
-    // 'China': 1439.323774
-}
+const locations = [
+    'Serbia',
+    'Slovenia',
+    'Croatia',
+    'Bulgaria',
+    'Greece',
+    'Sweden',
+    'Romania',
+    'Spain',
+    'Italy',
+    'Germany',
+    'United States'
+]
 
-axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv')
+axios.get('https://covid.ourworldindata.org/data/owid-covid-data.csv')
     .then(resp => {
         const parsed = [];
         const lines = resp.data.split('\n');
@@ -33,9 +32,11 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv')
                         obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
                         break
                     case 'new_cases':
-                    case 'new_deaths':
                     case 'total_cases':
                     case 'total_deaths':
+                    case 'total_cases_per_million':
+                    case 'new_cases_per_million':
+                    case 'new_tests':
                         obj[headers[j]] = +currentline[j];
                         break
                     default:
@@ -45,7 +46,7 @@ axios.get('https://covid.ourworldindata.org/data/ecdc/full_data.csv')
             parsed.push(obj);
         }
         const data = parsed.filter(d => {
-            return Object.keys(locations).indexOf(d.location) >= 0 && d.total_cases > 0
+            return locations.indexOf(d.location) >= 0
         });
         main(data);
     })
@@ -84,29 +85,53 @@ function main (data) {
                     }
                 }
             }],
-            datasets: Object.keys(locations).map(country => {
+            datasets: locations.map(country => {
                 return {
                     label: country,
                     data: data.filter(d => d.location === country)
                         .map(d => {
-                            return { x: d.date, y: d.new_cases / locations[country] }
+                            return { x: d.date, y: d.new_cases_per_million }
                         }),
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
             mul: 10
         },
-        'total_deaths_per_total_cases': {
+        'daily_cases_per_daily_tests': {
             yAxes: [{
                 type: 'linear',
                 position: 'right',
                 ticks: {
+                    autoSkipPadding: 14,
                     callback: function (value, index, values) {
                         return Math.round(value * 1000) / 10 + '%';
                     }
                 }
             }],
-            datasets: Object.keys(locations).map(country => {
+            datasets: locations.map(country => {
+                return {
+                    label: country,
+                    data: data.filter(d => d.location === country)
+                        .map(d => {
+                            return { x: d.date, y: d.new_cases / d.new_tests }
+                        }),
+                    hidden: (shown.includes(country)) ? false : true
+                }
+            }),
+            mul: 1000
+        },
+        'total_deaths_per_total_cases': {
+            yAxes: [{
+                type: 'linear',
+                position: 'right',
+                ticks: {
+                    autoSkipPadding: 14,
+                    callback: function (value, index, values) {
+                        return Math.round(value * 1000) / 10 + '%';
+                    }
+                }
+            }],
+            datasets: locations.map(country => {
                 return {
                     label: country,
                     data: data.filter(d => d.location === country)
@@ -130,12 +155,12 @@ function main (data) {
                     }
                 }
             }],
-            datasets: Object.keys(locations).map(country => {
+            datasets: locations.map(country => {
                 return {
                     label: country,
                     data: data.filter(d => d.location === country)
                         .map(d => {
-                            return { x: d.date, y: d.total_cases / locations[country] }
+                            return { x: d.date, y: d.total_cases_per_million }
                         }),
                     hidden: (shown.includes(country)) ? false : true
                 }
