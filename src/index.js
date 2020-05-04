@@ -193,10 +193,7 @@ function main (data) {
             meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
         graph.options.scales.yAxes = charts[id].yAxes;
-        graph.update({
-            duration: 800,
-            easing: 'easeInOutQuart'
-        })
+        graph.update();
     })
 
     document.getElementById('download').addEventListener('click', event => {
@@ -210,11 +207,8 @@ function main (data) {
     });
 }
 
-Chart.defaults.global.responsive = true;
-// Chart.defaults.global.maintainAspectRatio = false;
-Chart.defaults.global.legend.display = true;
-Chart.defaults.global.legend.align = 'end';
-Chart.defaults.global.legend.position = 'right';
+Chart.defaults.global.aspectRatio = 1.8;
+Chart.defaults.global.legend.position = 'bottom';
 Chart.defaults.global.legend.labels.boxWidth = 12;
 Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
