@@ -1,4 +1,7 @@
 import axios from 'axios'
+import localforage from 'localforage'
+import memoryDriver from 'localforage-memoryStorageDriver'
+import { setup } from 'axios-cache-adapter'
 import Chart from 'chart.js';
 import 'chartjs-adapter-moment';
 import 'chartjs-plugin-colorschemes';
@@ -18,39 +21,57 @@ const locations = [
     'United States'
 ]
 
-axios.get('https://covid.ourworldindata.org/data/owid-covid-data.csv')
-    .then(resp => {
-        const parsed = [];
-        const lines = resp.data.split('\n');
-        const headers = lines[0].split(',');
-        for (let i = 1; i < lines.length; i++) {
-            let obj = {};
-            const currentline = lines[i].split(',');
-            for (let j = 0; j < headers.length; j++) {
-                switch (headers[j]) {
-                    case 'date':
-                        obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
-                        break
-                    case 'new_cases':
-                    case 'total_cases':
-                    case 'total_deaths':
-                    case 'total_cases_per_million':
-                    case 'new_cases_per_million':
-                    case 'new_tests':
-                        obj[headers[j]] = +currentline[j];
-                        break
-                    default:
-                        obj[headers[j]] = currentline[j];
-                }
-            }
-            parsed.push(obj);
-        }
-        const data = parsed.filter(d => {
-            return locations.indexOf(d.location) >= 0
-        });
-        main(data);
+async function configure () {
+    await localforage.defineDriver(memoryDriver)
+    const forageStore = localforage.createInstance({
+        driver: [
+            localforage.INDEXEDDB,
+            localforage.LOCALSTORAGE,
+            memoryDriver._driver
+        ],
+        name: 'covid-data'
     })
-    .catch(err => { alert(err); });
+    return setup({
+        baseURL: 'https://covid.ourworldindata.org/data',
+        cache: {
+            maxAge: 15 * 60 * 1000, // 15 min
+            store: forageStore // Pass `localforage` store to `axios-cache-adapter`
+        }
+    })
+}
+
+configure().then(async (http) => {
+    const resp = await http.get('/owid-covid-data.csv')
+    const parsed = [];
+    const lines = resp.data.split('\n');
+    const headers = lines[0].split(',');
+    for (let i = 1; i < lines.length; i++) {
+        let obj = {};
+        const currentline = lines[i].split(',');
+        for (let j = 0; j < headers.length; j++) {
+            switch (headers[j]) {
+                case 'date':
+                    obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
+                    break
+                case 'new_cases':
+                case 'total_cases':
+                case 'total_deaths':
+                case 'total_cases_per_million':
+                case 'new_cases_per_million':
+                case 'new_tests':
+                    obj[headers[j]] = +currentline[j];
+                    break
+                default:
+                    obj[headers[j]] = currentline[j];
+            }
+        }
+        parsed.push(obj);
+    }
+    const data = parsed.filter(d => {
+        return locations.indexOf(d.location) >= 0
+    });
+    main(data);
+})
 
 let id = document.querySelector('#selected option:checked').value;
 let shown = ['Serbia'];

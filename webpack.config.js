@@ -9,6 +9,10 @@ module.exports = {
         app: './src/index.js'
     },
     plugins: [
+        new webpack.IgnorePlugin({
+            resourceRegExp: /^\.\/locale$/,
+            contextRegExp: /moment$/
+        }),
         new CopyPlugin([
             {
                 from: './src/styles.css',
@@ -21,7 +25,10 @@ module.exports = {
             template: './src/index.html',
             filename: 'index.html'
         }),
-        new webpack.HotModuleReplacementPlugin({})
+        new webpack.HotModuleReplacementPlugin({}),
+        // new webpack.DefinePlugin({
+        //     'process.env.LOGGER_LEVEL': JSON.stringify('info')
+        // })
     ],
     output: {
         path: path.resolve(__dirname, 'dist'),
