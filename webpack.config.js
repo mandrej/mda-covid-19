@@ -25,10 +25,7 @@ module.exports = {
             template: './src/index.html',
             filename: 'index.html'
         }),
-        new webpack.HotModuleReplacementPlugin({}),
-        // new webpack.DefinePlugin({
-        //     'process.env.LOGGER_LEVEL': JSON.stringify('info')
-        // })
+        new webpack.HotModuleReplacementPlugin({})
     ],
     output: {
         path: path.resolve(__dirname, 'dist'),
