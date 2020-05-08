@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
     entry: {
@@ -25,7 +26,8 @@ module.exports = {
             template: './src/index.html',
             filename: 'index.html'
         }),
-        new webpack.HotModuleReplacementPlugin({})
+        new webpack.HotModuleReplacementPlugin({}),
+        new Dotenv()
     ],
     output: {
         path: path.resolve(__dirname, 'dist'),

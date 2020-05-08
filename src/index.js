@@ -74,6 +74,7 @@ configure().then(async (http) => {
 })
 
 let id = document.querySelector('#selected option:checked').value;
+const ctx = document.getElementById('chart').getContext('2d');
 let shown = ['Serbia'];
 
 const xAxes = [{
@@ -89,8 +90,6 @@ const xAxes = [{
         min: moment('2020-03-01', 'YYYY-MM-DD')
     }
 }];
-
-const ctx = document.getElementById('chart').getContext('2d');
 
 function main (data) {
     const charts = {
