@@ -15,10 +15,12 @@ const locations = [
     'Greece',
     'Sweden',
     'Romania',
+    'Portugal',
     'Spain',
     'Italy',
     'Germany',
-    'United States'
+    'United States',
+    'Russia'
 ]
 
 async function configure () {
@@ -94,6 +96,7 @@ const xAxes = [{
 function main (data) {
     const charts = {
         'daily_cases_per_million': {
+            legend: true,
             yAxes: [{
                 type: 'logarithmic',
                 position: 'right',
@@ -118,10 +121,12 @@ function main (data) {
             mul: 10
         },
         'daily_cases_per_daily_tests': {
+            legend: false,
             yAxes: [{
-                type: 'linear',
+                type: 'logarithmic',
                 position: 'right',
                 ticks: {
+                    min: 0.005,
                     autoSkipPadding: 14,
                     callback: function (value, index, values) {
                         return Math.round(value * 1000) / 10 + '%';
@@ -141,6 +146,7 @@ function main (data) {
             mul: 1000
         },
         'total_deaths_per_total_cases': {
+            legend: false,
             yAxes: [{
                 type: 'linear',
                 position: 'right',
@@ -164,6 +170,7 @@ function main (data) {
             mul: 1000
         },
         'total_cases_per_million': {
+            legend: false,
             yAxes: [{
                 type: 'logarithmic',
                 position: 'right',
@@ -199,6 +206,7 @@ function main (data) {
         },
         options: {
             legend: {
+                display: charts[id].legend,
                 onClick: function (event, item) {
                     const idx = shown.indexOf(item.text);
                     if (item.hidden) {
@@ -210,7 +218,7 @@ function main (data) {
                             shown.splice(idx, 1)
                         }
                     }
-                    Chart.defaults.global.legend.onClick.call(this, event, item);
+                    redraw(id);
                 }
             },
             scales: {
@@ -229,9 +237,7 @@ function main (data) {
         }
     });
 
-    document.getElementById('selected').addEventListener('change', event => {
-        id = event.target.value;
-
+    function redraw (id) {
         graph.data.datasets = charts[id].datasets;
         graph.data.datasets.forEach((dataset, i) => {
             let meta = graph.getDatasetMeta(i);
@@ -239,6 +245,11 @@ function main (data) {
         });
         graph.options.scales.yAxes = charts[id].yAxes;
         graph.update();
+    }
+
+    document.getElementById('selected').addEventListener('change', event => {
+        id = event.target.value;
+        redraw(id);
     })
 
     document.getElementById('download').addEventListener('click', event => {
@@ -258,6 +269,7 @@ Chart.defaults.global.legend.labels.boxWidth = 12;
 Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
+Chart.defaults.global.elements.line.spanGaps = true;
 Chart.defaults.global.elements.point.radius = 5;
 Chart.defaults.global.elements.point.hoverRadius = 5;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau20';
