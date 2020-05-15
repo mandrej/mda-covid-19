@@ -118,7 +118,16 @@ function main (data) {
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
-            mul: 10
+            tooltips: {
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) label += ': ';
+                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 10) / 10;
+                        return label;
+                    }
+                }
+            }
         },
         'daily_cases_per_daily_tests': {
             legend: false,
@@ -143,7 +152,16 @@ function main (data) {
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
-            mul: 1000
+            tooltips: {
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) label += ': ';
+                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+                        return label;
+                    }
+                }
+            }
         },
         'total_deaths_per_total_cases': {
             legend: false,
@@ -167,7 +185,16 @@ function main (data) {
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
-            mul: 1000
+            tooltips: {
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) label += ': ';
+                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+                        return label;
+                    }
+                }
+            }
         },
         'total_cases_per_million': {
             legend: false,
@@ -192,7 +219,16 @@ function main (data) {
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
-            mul: 10
+            tooltips: {
+                callbacks: {
+                    label: function (tooltipItem, data) {
+                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
+                        if (label) label += ': ';
+                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 10) / 10;
+                        return label;
+                    }
+                }
+            }
         }
     }
 
@@ -218,37 +254,30 @@ function main (data) {
                             shown.splice(idx, 1)
                         }
                     }
-                    redraw(id);
+                    // Chart.defaults.global.legend.onClick.call(this, event, item);
+                    const meta = this.chart.getDatasetMeta(item.datasetIndex);
+                    meta.hidden = (shown.includes(item.text)) ? false : true;
+                    this.chart.update();
                 }
             },
             scales: {
                 xAxes: xAxes,
                 yAxes: charts[id].yAxes
             },
-            tooltips: {
-                callbacks: {
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label + ' ';
-                        label += Math.round(tooltipItem.yLabel * charts[id].mul) / 10;
-                        return label;
-                    }
-                }
-            }
+            tooltips: charts[id].tooltips
         }
     });
 
-    function redraw (id) {
+    document.getElementById('selected').addEventListener('change', event => {
+        const id = event.target.value;
         graph.data.datasets = charts[id].datasets;
         graph.data.datasets.forEach((dataset, i) => {
             let meta = graph.getDatasetMeta(i);
             meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
         graph.options.scales.yAxes = charts[id].yAxes;
+        graph.options.tooltips = charts[id].tooltips;
         graph.update();
-    }
-
-    document.getElementById('selected').addEventListener('change', event => {
-        redraw(event.target.value);
     })
 
     document.getElementById('download').addEventListener('click', event => {
