@@ -23,6 +23,30 @@ const locations = [
     'Russia'
 ]
 
+function ga_select_graph (name, value = 1) {
+    gtag('event', 'select_graph', {
+        event_category: 'engagement',
+        event_label: name,
+        value: value
+    })
+}
+
+function ga_add_country (country, value = 1) {
+    gtag('event', 'add_country', {
+        event_category: 'engagement',
+        event_label: country,
+        value: value
+    })
+}
+
+function ga_del_country (country, value = 1) {
+    gtag('event', 'del_country', {
+        event_category: 'engagement',
+        event_label: country,
+        value: value
+    })
+}
+
 async function configure () {
     await localforage.defineDriver(memoryDriver)
     const forageStore = localforage.createInstance({
@@ -78,6 +102,7 @@ configure().then(async (http) => {
 let id = document.querySelector('#selected option:checked').value;
 const ctx = document.getElementById('chart').getContext('2d');
 let shown = ['Serbia'];
+ga_add_country(shown[0]);
 
 const xAxes = [{
     type: 'time',
@@ -247,11 +272,13 @@ function main (data) {
                     const idx = shown.indexOf(item.text);
                     if (item.hidden) {
                         if (idx === -1) {
-                            shown.push(item.text)
+                            shown.push(item.text);
+                            ga_add_country(item.text);
                         }
                     } else {
                         if (idx !== -1) {
-                            shown.splice(idx, 1)
+                            shown.splice(idx, 1);
+                            ga_del_country(item.text);
                         }
                     }
                     // Chart.defaults.global.legend.onClick.call(this, event, item);
@@ -268,8 +295,11 @@ function main (data) {
         }
     });
 
+    ga_select_graph(id);
     document.getElementById('selected').addEventListener('change', event => {
-        const id = event.target.value;
+        id = event.target.value;
+        ga_select_graph(id);
+
         graph.data.datasets = charts[id].datasets;
         graph.data.datasets.forEach((dataset, i) => {
             let meta = graph.getDatasetMeta(i);
