@@ -248,8 +248,7 @@ function main (data) {
     }
 
     document.getElementById('selected').addEventListener('change', event => {
-        id = event.target.value;
-        redraw(id);
+        redraw(event.target.value);
     })
 
     document.getElementById('download').addEventListener('click', event => {
