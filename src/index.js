@@ -85,7 +85,7 @@ configure().then(async (http) => {
                 case 'total_cases_per_million':
                 case 'new_cases_per_million':
                 case 'new_tests':
-                    obj[headers[j]] = +currentline[j];
+                    obj[headers[j]] = +Math.abs(currentline[j]);
                     break
                 default:
                     obj[headers[j]] = currentline[j];
@@ -101,7 +101,8 @@ configure().then(async (http) => {
 
 let id = document.querySelector('#selected option:checked').value;
 const ctx = document.getElementById('chart').getContext('2d');
-let shown = ['Serbia'];
+const skip = { x: null, y: null };
+const shown = ['Serbia'];
 ga_add_country(shown[0]);
 
 const xAxes = [{
@@ -138,7 +139,11 @@ function main (data) {
                     label: country,
                     data: data.filter(d => d.location === country)
                         .map(d => {
-                            return { x: d.date, y: d.new_cases_per_million }
+                            if (d.new_cases_per_million) {
+                                return { x: d.date, y: d.new_cases_per_million }
+                            } else {
+                                return skip
+                            }
                         }),
                     hidden: (shown.includes(country)) ? false : true
                 }
@@ -148,7 +153,7 @@ function main (data) {
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
-                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 10) / 10;
+                        label += Math.round(tooltipItem.yLabel * 10) / 10;
                         return label;
                     }
                 }
@@ -172,7 +177,11 @@ function main (data) {
                     label: country,
                     data: data.filter(d => d.location === country)
                         .map(d => {
-                            return { x: d.date, y: d.new_cases / d.new_tests }
+                            if (d.new_cases && d.new_tests) {
+                                return { x: d.date, y: d.new_cases / d.new_tests }
+                            } else {
+                                return skip
+                            }
                         }),
                     hidden: (shown.includes(country)) ? false : true
                 }
@@ -182,7 +191,7 @@ function main (data) {
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
-                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+                        label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
                         return label;
                     }
                 }
@@ -205,7 +214,11 @@ function main (data) {
                     label: country,
                     data: data.filter(d => d.location === country)
                         .map(d => {
-                            return { x: d.date, y: d.total_deaths / d.total_cases }
+                            if (d.total_deaths && d.total_cases) {
+                                return { x: d.date, y: d.total_deaths / d.total_cases }
+                            } else {
+                                return skip
+                            }
                         }),
                     hidden: (shown.includes(country)) ? false : true
                 }
@@ -215,7 +228,7 @@ function main (data) {
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
-                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+                        label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
                         return label;
                     }
                 }
@@ -239,7 +252,11 @@ function main (data) {
                     label: country,
                     data: data.filter(d => d.location === country)
                         .map(d => {
-                            return { x: d.date, y: d.total_cases_per_million }
+                            if (d.total_cases_per_million) {
+                                return { x: d.date, y: d.total_cases_per_million }
+                            } else {
+                                return skip
+                            }
                         }),
                     hidden: (shown.includes(country)) ? false : true
                 }
@@ -249,7 +266,7 @@ function main (data) {
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
-                        label += isNaN(tooltipItem.yLabel) ? 'n/a' : Math.round(tooltipItem.yLabel * 10) / 10;
+                        label += Math.round(tooltipItem.yLabel * 10) / 10;
                         return label;
                     }
                 }
