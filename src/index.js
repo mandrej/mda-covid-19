@@ -85,7 +85,7 @@ configure().then(async (http) => {
                 case 'total_cases_per_million':
                 case 'new_cases_per_million':
                 case 'new_tests':
-                    obj[headers[j]] = +Math.abs(currentline[j]);
+                    obj[headers[j]] = Math.abs(currentline[j]);
                     break
                 default:
                     obj[headers[j]] = currentline[j];
