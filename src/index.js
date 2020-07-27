@@ -274,8 +274,14 @@ function main (data) {
         }
     }
 
-    const latest = charts[id].datasets[0].data.slice(-1)[0].x.format('DD.MM.YYYY');
-    document.getElementById('latest').innerHTML = latest;
+    let setDate = false;
+    const latest = charts[id].datasets[0].data.slice(-3);
+    latest.slice().reverse().forEach(obj => {
+        if (obj.x && !setDate) {
+            document.getElementById('latest').innerHTML = obj.x.format('DD.MM.YYYY');
+            setDate = true;
+        }
+    })
 
     const graph = new Chart(ctx, {
         type: 'line',
