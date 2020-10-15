@@ -9,6 +9,9 @@ import moment from 'moment';
 
 const locations = [
     'Serbia',
+    'Montenegro',
+    'Macedonia',
+    'Bosnia and Herzegovina',
     'Slovenia',
     'Croatia',
     'Bulgaria',
@@ -111,7 +114,7 @@ const xAxes = [{
         unit: 'week',
         isoWeekday: true,
         displayFormats: {
-            week: 'DD.MMM'
+            week: 'DD.MM'
         }
     },
     ticks: {
@@ -159,44 +162,44 @@ function main (data) {
                 }
             }
         },
-        'daily_cases_per_daily_tests': {
-            legend: false,
-            yAxes: [{
-                type: 'logarithmic',
-                position: 'right',
-                ticks: {
-                    min: 0.005,
-                    autoSkipPadding: 14,
-                    callback: function (value, index, values) {
-                        return Math.round(value * 1000) / 10 + '%';
-                    }
-                }
-            }],
-            datasets: locations.map(country => {
-                return {
-                    label: country,
-                    data: data.filter(d => d.location === country)
-                        .map(d => {
-                            if (d.new_cases && d.new_tests) {
-                                return { x: d.date, y: d.new_cases / d.new_tests }
-                            } else {
-                                return skip
-                            }
-                        }),
-                    hidden: (shown.includes(country)) ? false : true
-                }
-            }),
-            tooltips: {
-                callbacks: {
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
-                        if (label) label += ': ';
-                        label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
-                        return label;
-                    }
-                }
-            }
-        },
+        // 'daily_cases_per_daily_tests': {
+        //     legend: false,
+        //     yAxes: [{
+        //         type: 'logarithmic',
+        //         position: 'right',
+        //         ticks: {
+        //             min: 0.005,
+        //             autoSkipPadding: 14,
+        //             callback: function (value, index, values) {
+        //                 return Math.round(value * 1000) / 10 + '%';
+        //             }
+        //         }
+        //     }],
+        //     datasets: locations.map(country => {
+        //         return {
+        //             label: country,
+        //             data: data.filter(d => d.location === country)
+        //                 .map(d => {
+        //                     if (d.new_cases && d.new_tests) {
+        //                         return { x: d.date, y: d.new_cases / d.new_tests }
+        //                     } else {
+        //                         return skip
+        //                     }
+        //                 }),
+        //             hidden: (shown.includes(country)) ? false : true
+        //         }
+        //     }),
+        //     tooltips: {
+        //         callbacks: {
+        //             label: function (tooltipItem, data) {
+        //                 let label = data.datasets[tooltipItem.datasetIndex].label || '';
+        //                 if (label) label += ': ';
+        //                 label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+        //                 return label;
+        //             }
+        //         }
+        //     }
+        // },
         'total_deaths_per_total_cases': {
             legend: false,
             yAxes: [{
@@ -353,4 +356,4 @@ Chart.defaults.global.elements.line.fill = false;
 Chart.defaults.global.elements.line.spanGaps = true;
 Chart.defaults.global.elements.point.radius = 5;
 Chart.defaults.global.elements.point.hoverRadius = 5;
-Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau20';
+Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
