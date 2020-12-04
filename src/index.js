@@ -63,7 +63,7 @@ async function configure () {
     return setup({
         baseURL: 'https://covid.ourworldindata.org/data',
         cache: {
-            maxAge: 15 * 60 * 1000, // 15 min
+            maxAge: 3600 * 1000, // 1 hour
             store: forageStore // Pass `localforage` store to `axios-cache-adapter`
         }
     })
@@ -111,10 +111,9 @@ ga_add_country(shown[0]);
 const xAxes = [{
     type: 'time',
     time: {
-        unit: 'week',
-        isoWeekday: true,
+        unit: 'month',
         displayFormats: {
-            week: 'DD.MM'
+            month: 'MMM YYYY'
         }
     },
     ticks: {
