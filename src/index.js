@@ -25,6 +25,52 @@ const locations = [
     'United States',
     'Russia'
 ]
+const ignore = [
+    'aged_65_older',
+    'aged_70_older',
+    'cardiovasc_death_rate',
+    'continent',
+    'diabetes_prevalence',
+    'extreme_poverty',
+    'female_smokers',
+    'gdp_per_capita',
+    'handwashing_facilities',
+    'hosp_patients',
+    'hosp_patients_per_million',
+    'hospital_beds_per_thousand',
+    'human_development_index',
+    'icu_patients',
+    'icu_patients_per_million',
+    'life_expectancy',
+    'male_smokers',
+    'median_age',
+    'new_tests',
+    'new_cases',
+    'new_cases_smoothed',
+    'new_cases_smoothed_per_million',
+    'new_deaths',
+    'new_deaths_per_million',
+    'new_deaths_smoothed',
+    'new_deaths_smoothed_per_million',
+    'total_tests',
+    'total_tests_per_thousand',
+    'new_tests_per_thousand',
+    'new_tests_smoothed',
+    'new_tests_smoothed_per_thousand',
+    'total_deaths_per_million',
+    'population',
+    'population_density',
+    'positive_rate',
+    'reproduction_rate',
+    'stringency_index',
+    'tests_per_case',
+    'tests_units',
+    'weekly_hosp_admissions',
+    'weekly_hosp_admissions_per_million',
+    'weekly_icu_admissions',
+    'weekly_icu_admissions_per_million'
+]
+const period = 7;
 
 function ga_select_graph (name, value = 1) {
     gtag('event', 'select_graph', {
@@ -50,6 +96,18 @@ function ga_del_country (country, value = 1) {
     })
 }
 
+function grouping (data, country) {
+    return data.filter(d => d.location === country)
+        .reduce((chunk, item, index) => {
+            const chunkIndex = Math.floor(index / period)
+            if (!chunk[chunkIndex]) {
+                chunk[chunkIndex] = [] // start a new chunk
+            }
+            chunk[chunkIndex].push(item)
+            return chunk
+        }, [])
+}
+
 async function configure () {
     await localforage.defineDriver(memoryDriver)
     const forageStore = localforage.createInstance({
@@ -63,7 +121,7 @@ async function configure () {
     return setup({
         baseURL: 'https://covid.ourworldindata.org/data',
         cache: {
-            maxAge: 3600 * 1000, // 1 hour
+            maxAge: 6 * 3600 * 1000, // 6 hours
             store: forageStore // Pass `localforage` store to `axios-cache-adapter`
         }
     })
@@ -82,18 +140,20 @@ configure().then(async (http) => {
                 case 'date':
                     obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
                     break
-                case 'new_cases':
+                case 'new_cases_per_million':
                 case 'total_cases':
                 case 'total_deaths':
                 case 'total_cases_per_million':
                 case 'new_cases_per_million':
-                case 'new_tests':
                     obj[headers[j]] = Math.abs(currentline[j]);
                     break
                 default:
                     obj[headers[j]] = currentline[j];
             }
         }
+        ignore.forEach(field => {
+            delete obj[field]
+        })
         parsed.push(obj);
     }
     const data = parsed.filter(d => {
@@ -137,16 +197,18 @@ function main (data) {
                 }
             }],
             datasets: locations.map(country => {
+                const group = grouping(data, country);
                 return {
                     label: country,
-                    data: data.filter(d => d.location === country)
-                        .map(d => {
-                            if (d.new_cases_per_million) {
-                                return { x: d.date, y: d.new_cases_per_million }
-                            } else {
-                                return skip
-                            }
-                        }),
+                    data: group.map(chunk => {
+                        const average = chunk.map(d => d.new_cases_per_million).reduce((acc, cur) => acc + cur) / chunk.length
+                        const latest = chunk.slice(-1).pop()
+                        if (latest.date) {
+                            return { x: latest.date, y: average / 10 }
+                        } else {
+                            return skip
+                        }
+                    }),
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
@@ -161,44 +223,6 @@ function main (data) {
                 }
             }
         },
-        // 'daily_cases_per_daily_tests': {
-        //     legend: false,
-        //     yAxes: [{
-        //         type: 'logarithmic',
-        //         position: 'right',
-        //         ticks: {
-        //             min: 0.005,
-        //             autoSkipPadding: 14,
-        //             callback: function (value, index, values) {
-        //                 return Math.round(value * 1000) / 10 + '%';
-        //             }
-        //         }
-        //     }],
-        //     datasets: locations.map(country => {
-        //         return {
-        //             label: country,
-        //             data: data.filter(d => d.location === country)
-        //                 .map(d => {
-        //                     if (d.new_cases && d.new_tests) {
-        //                         return { x: d.date, y: d.new_cases / d.new_tests }
-        //                     } else {
-        //                         return skip
-        //                     }
-        //                 }),
-        //             hidden: (shown.includes(country)) ? false : true
-        //         }
-        //     }),
-        //     tooltips: {
-        //         callbacks: {
-        //             label: function (tooltipItem, data) {
-        //                 let label = data.datasets[tooltipItem.datasetIndex].label || '';
-        //                 if (label) label += ': ';
-        //                 label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
-        //                 return label;
-        //             }
-        //         }
-        //     }
-        // },
         'total_deaths_per_total_cases': {
             legend: false,
             yAxes: [{
@@ -212,16 +236,18 @@ function main (data) {
                 }
             }],
             datasets: locations.map(country => {
+                const group = grouping(data, country);
                 return {
                     label: country,
-                    data: data.filter(d => d.location === country)
-                        .map(d => {
-                            if (d.total_deaths && d.total_cases) {
-                                return { x: d.date, y: d.total_deaths / d.total_cases }
-                            } else {
-                                return skip
-                            }
-                        }),
+                    data: group.map(chunk => {
+                        const average = chunk.map(d => d.total_deaths / d.total_cases).reduce((acc, cur) => acc + cur) / chunk.length
+                        const latest = chunk.slice(-1).pop()
+                        if (latest.date) {
+                            return { x: latest.date, y: average }
+                        } else {
+                            return skip
+                        }
+                    }),
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
@@ -250,16 +276,18 @@ function main (data) {
                 }
             }],
             datasets: locations.map(country => {
+                const group = grouping(data, country);
                 return {
                     label: country,
-                    data: data.filter(d => d.location === country)
-                        .map(d => {
-                            if (d.total_cases_per_million) {
-                                return { x: d.date, y: d.total_cases_per_million }
-                            } else {
-                                return skip
-                            }
-                        }),
+                    data: group.map(chunk => {
+                        const average = chunk.map(d => d.total_cases_per_million).reduce((acc, cur) => acc + cur) / chunk.length
+                        const latest = chunk.slice(-1).pop()
+                        if (latest.date) {
+                            return { x: latest.date, y: average / 10 }
+                        } else {
+                            return skip
+                        }
+                    }),
                     hidden: (shown.includes(country)) ? false : true
                 }
             }),
@@ -344,6 +372,7 @@ function main (data) {
         event.target.download = id + '.png';
         event.target.href = canvas.toDataURL("image/png");
     });
+    document.getElementById('cube').style.display = 'none';
 }
 
 Chart.defaults.global.aspectRatio = 1.8;

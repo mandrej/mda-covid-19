@@ -5,19 +5,25 @@
 
 <body>
     <h1>COVID-19 pandemic</h1>
+    <span class="sub">Weekly average</span>
     <p>by <a href="https://twitter.com/mandrej">milan andrejevic</a>,
         data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>.
-        Updated <span id="latest">12.04.2020</span>
+        Updated <span id="latest">05.12.2020</span>
     </p>
     <p>
         <select id="selected">
-            <option value="daily_cases_per_million" selected>Daily cases / per million</option>
-            <!-- <option value="daily_cases_per_daily_tests">Daily cases / Daily tests</option> -->
+            <option value="daily_cases_per_million" selected>Daily cases / per 100k</option>
             <option value="total_deaths_per_total_cases">Total deaths / Total cases</option>
-            <option value="total_cases_per_million">Total cases / per million</option>
+            <option value="total_cases_per_million">Total cases / per 100k</option>
         </select>
         <a id="download" href="#" download="chart.png">save</a>
     </p>
+    <div id="cube" class="sk-folding-cube">
+        <div class="sk-cube1 sk-cube"></div>
+        <div class="sk-cube2 sk-cube"></div>
+        <div class="sk-cube4 sk-cube"></div>
+        <div class="sk-cube3 sk-cube"></div>
+    </div>
     <div class="box">
         <canvas id="chart"></canvas>
     </div>
