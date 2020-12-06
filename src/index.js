@@ -121,7 +121,7 @@ async function configure () {
     return setup({
         baseURL: 'https://covid.ourworldindata.org/data',
         cache: {
-            maxAge: 6 * 3600 * 1000, // 6 hours
+            maxAge: 3600 * 1000, // 1 hour
             store: forageStore // Pass `localforage` store to `axios-cache-adapter`
         }
     })
@@ -177,7 +177,7 @@ const xAxes = [{
         }
     },
     ticks: {
-        min: moment('2020-03-01', 'YYYY-MM-DD')
+        min: moment('2020-03-01', 'YYYY-MM-DD') // Sunday
     }
 }];
 
