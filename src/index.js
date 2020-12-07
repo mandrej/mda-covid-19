@@ -28,42 +28,6 @@ const locations = [
 const start = '2020-03-01';
 const period = 7;
 
-function ga_select_graph (name, value = 1) {
-    gtag('event', 'select_graph', {
-        event_category: 'engagement',
-        event_label: name,
-        value: value
-    })
-}
-
-function ga_add_country (country, value = 1) {
-    gtag('event', 'add_country', {
-        event_category: 'engagement',
-        event_label: country,
-        value: value
-    })
-}
-
-function ga_del_country (country, value = 1) {
-    gtag('event', 'del_country', {
-        event_category: 'engagement',
-        event_label: country,
-        value: value
-    })
-}
-
-function grouping (data, country) {
-    return data.filter(d => d.location === country)
-        .reduce((chunk, item, index) => {
-            const chunkIndex = Math.floor(index / period)
-            if (!chunk[chunkIndex]) {
-                chunk[chunkIndex] = [] // start a new chunk
-            }
-            chunk[chunkIndex].push(item)
-            return chunk
-        }, [])
-}
-
 async function configure () {
     await localforage.defineDriver(memoryDriver)
     const forageStore = localforage.createInstance({
@@ -83,6 +47,18 @@ async function configure () {
     })
 }
 
+function grouping (data, country) {
+    return data.filter(d => d.location === country)
+        .reduce((chunk, item, index) => {
+            const chunkIndex = Math.floor(index / period)
+            if (!chunk[chunkIndex]) {
+                chunk[chunkIndex] = [] // start a new chunk
+            }
+            chunk[chunkIndex].push(item)
+            return chunk
+        }, [])
+}
+
 configure().then(async (http) => {
     const resp = await http.get('/owid-covid-data.csv')
     const parsed = [];
@@ -98,17 +74,12 @@ configure().then(async (http) => {
                     case 'date':
                         obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
                         break
-                    case 'new_cases_per_million':
-                    case 'total_cases':
-                    case 'total_deaths':
-                    case 'total_cases_per_million':
-                        obj[headers[j]] = Math.abs(currentline[j]);
+                    case 'location':
+                        obj[headers[j]] = currentline[j];
                         break
                     default:
-                        obj[headers[j]] = currentline[j];
+                        obj[headers[j]] = +currentline[j];
                 }
-            } else {
-                continue
             }
         }
         parsed.push(obj);
@@ -342,5 +313,29 @@ Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
 Chart.defaults.global.elements.line.spanGaps = true;
 Chart.defaults.global.elements.point.radius = 5;
-Chart.defaults.global.elements.point.hoverRadius = 5;
+Chart.defaults.global.elements.point.hoverRadius = 8;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
+
+function ga_select_graph (name, value = 1) {
+    gtag('event', 'select_graph', {
+        event_category: 'engagement',
+        event_label: name,
+        value: value
+    })
+}
+
+function ga_add_country (country, value = 1) {
+    gtag('event', 'add_country', {
+        event_category: 'engagement',
+        event_label: country,
+        value: value
+    })
+}
+
+function ga_del_country (country, value = 1) {
+    gtag('event', 'del_country', {
+        event_category: 'engagement',
+        event_label: country,
+        value: value
+    })
+}
