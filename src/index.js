@@ -25,51 +25,7 @@ const locations = [
     'United States',
     'Russia'
 ]
-const ignore = [
-    'aged_65_older',
-    'aged_70_older',
-    'cardiovasc_death_rate',
-    'continent',
-    'diabetes_prevalence',
-    'extreme_poverty',
-    'female_smokers',
-    'gdp_per_capita',
-    'handwashing_facilities',
-    'hosp_patients',
-    'hosp_patients_per_million',
-    'hospital_beds_per_thousand',
-    'human_development_index',
-    'icu_patients',
-    'icu_patients_per_million',
-    'life_expectancy',
-    'male_smokers',
-    'median_age',
-    'new_tests',
-    'new_cases',
-    'new_cases_smoothed',
-    'new_cases_smoothed_per_million',
-    'new_deaths',
-    'new_deaths_per_million',
-    'new_deaths_smoothed',
-    'new_deaths_smoothed_per_million',
-    'total_tests',
-    'total_tests_per_thousand',
-    'new_tests_per_thousand',
-    'new_tests_smoothed',
-    'new_tests_smoothed_per_thousand',
-    'total_deaths_per_million',
-    'population',
-    'population_density',
-    'positive_rate',
-    'reproduction_rate',
-    'stringency_index',
-    'tests_per_case',
-    'tests_units',
-    'weekly_hosp_admissions',
-    'weekly_hosp_admissions_per_million',
-    'weekly_icu_admissions',
-    'weekly_icu_admissions_per_million'
-]
+const start = '2020-03-01';
 const period = 7;
 
 function ga_select_graph (name, value = 1) {
@@ -132,32 +88,35 @@ configure().then(async (http) => {
     const parsed = [];
     const lines = resp.data.split('\n');
     const headers = lines[0].split(',');
+    const needed = ['date', 'location', 'new_cases_per_million', 'total_cases', 'total_deaths', 'total_cases_per_million']
     for (let i = 1; i < lines.length; i++) {
         let obj = {};
         const currentline = lines[i].split(',');
         for (let j = 0; j < headers.length; j++) {
-            switch (headers[j]) {
-                case 'date':
-                    obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
-                    break
-                case 'new_cases_per_million':
-                case 'total_cases':
-                case 'total_deaths':
-                case 'total_cases_per_million':
-                case 'new_cases_per_million':
-                    obj[headers[j]] = Math.abs(currentline[j]);
-                    break
-                default:
-                    obj[headers[j]] = currentline[j];
+            if (needed.indexOf(headers[j]) >= 0) {
+                switch (headers[j]) {
+                    case 'date':
+                        obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
+                        break
+                    case 'new_cases_per_million':
+                    case 'total_cases':
+                    case 'total_deaths':
+                    case 'total_cases_per_million':
+                        obj[headers[j]] = Math.abs(currentline[j]);
+                        break
+                    default:
+                        obj[headers[j]] = currentline[j];
+                }
+            } else {
+                continue
             }
         }
-        ignore.forEach(field => {
-            delete obj[field]
-        })
         parsed.push(obj);
     }
     const data = parsed.filter(d => {
         return locations.indexOf(d.location) >= 0
+    }).filter(d => {
+        return d.date > moment(start, 'YYYY-MM-DD')
     });
     main(data);
 })
@@ -177,7 +136,7 @@ const xAxes = [{
         }
     },
     ticks: {
-        min: moment('2020-03-01', 'YYYY-MM-DD') // Sunday
+        min: moment(start, 'YYYY-MM-DD') // Sunday
     }
 }];
 
@@ -372,7 +331,7 @@ function main (data) {
         event.target.download = id + '.png';
         event.target.href = canvas.toDataURL("image/png");
     });
-    document.getElementById('cube').style.display = 'none';
+    document.getElementById('loader').style.display = 'none';
 }
 
 Chart.defaults.global.aspectRatio = 1.8;
