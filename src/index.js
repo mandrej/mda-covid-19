@@ -10,7 +10,7 @@ import moment from 'moment';
 const locations = [
     'Serbia',
     'Montenegro',
-    'Macedonia',
+    'North Macedonia',
     'Bosnia and Herzegovina',
     'Slovenia',
     'Croatia',
@@ -21,6 +21,7 @@ const locations = [
     'Portugal',
     'Spain',
     'Italy',
+    'Austria',
     'Germany',
     'United States',
     'Russia'
