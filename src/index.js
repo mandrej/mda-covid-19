@@ -1,11 +1,9 @@
 import axios from 'axios'
 import localforage from 'localforage'
-import memoryDriver from 'localforage-memoryStorageDriver'
-import { setup } from 'axios-cache-adapter'
 import Chart from 'chart.js';
-import 'chartjs-adapter-moment';
+import dayjs from 'dayjs';
+import 'chartjs-adapter-dayjs';
 import 'chartjs-plugin-colorschemes';
-import moment from 'moment';
 
 const locations = [
     'Serbia',
@@ -28,69 +26,65 @@ const locations = [
 ]
 const start = '2020-03-01';
 const period = 7;
+const expired = 3600 * 1000;
+const key = 'mda';
 
-async function configure () {
-    await localforage.defineDriver(memoryDriver)
-    const forageStore = localforage.createInstance({
-        driver: [
-            localforage.INDEXEDDB,
-            localforage.LOCALSTORAGE,
-            memoryDriver._driver
-        ],
-        name: 'covid-data'
-    })
-    return setup({
-        baseURL: 'https://covid.ourworldindata.org/data',
-        cache: {
-            maxAge: 3600 * 1000, // 1 hour
-            store: forageStore // Pass `localforage` store to `axios-cache-adapter`
-        }
-    })
-}
+const forageStore = localforage.createInstance({
+    driver: [
+        localforage.LOCALSTORAGE,
+    ],
+    name: 'covid-data'
+});
 
-function grouping (data, country) {
-    return data.filter(d => d.location === country)
-        .reduce((chunk, item, index) => {
-            const chunkIndex = Math.floor(index / period)
-            if (!chunk[chunkIndex]) {
-                chunk[chunkIndex] = [] // start a new chunk
-            }
-            chunk[chunkIndex].push(item)
-            return chunk
-        }, [])
-}
-
-configure().then(async (http) => {
-    const resp = await http.get('/owid-covid-data.csv')
-    const parsed = [];
-    const lines = resp.data.split('\n');
-    const headers = lines[0].split(',');
-    const needed = ['date', 'location', 'new_cases_per_million', 'total_cases', 'total_deaths', 'total_cases_per_million']
-    for (let i = 1; i < lines.length; i++) {
-        let obj = {};
-        const currentline = lines[i].split(',');
-        for (let j = 0; j < headers.length; j++) {
-            if (needed.indexOf(headers[j]) >= 0) {
-                switch (headers[j]) {
-                    case 'date':
-                        obj[headers[j]] = moment(currentline[j], 'YYYY-MM-DD');
-                        break
-                    case 'location':
-                        obj[headers[j]] = currentline[j];
-                        break
-                    default:
-                        obj[headers[j]] = +currentline[j];
+function fetch (callback) {
+    axios.get('https://covid.ourworldindata.org/data/owid-covid-data.csv').then(resp => {
+        const parsed = [];
+        const lines = resp.data.split('\n');
+        const headers = lines[0].split(',');
+        const needed = ['date', 'location', 'new_cases_per_million', 'total_cases', 'total_deaths', 'total_cases_per_million']
+        for (let i = 1; i < lines.length; i++) {
+            let obj = {};
+            const currentline = lines[i].split(',');
+            for (let j = 0; j < headers.length; j++) {
+                if (needed.indexOf(headers[j]) >= 0) {
+                    switch (headers[j]) {
+                        case 'date':
+                            obj[headers[j]] = dayjs(currentline[j], 'YYYY-MM-DD');
+                            break
+                        case 'location':
+                            obj[headers[j]] = currentline[j];
+                            break
+                        default:
+                            obj[headers[j]] = +currentline[j];
+                    }
                 }
             }
+            parsed.push(obj);
         }
-        parsed.push(obj);
+        const data = parsed.filter(d => {
+            return locations.indexOf(d.location) >= 0
+        }).filter(d => {
+            return d.date > dayjs(start, 'YYYY-MM-DD')
+        });
+
+        forageStore.setItem(key, { ts: Date.now(), data: data })
+        callback(data)
+    })
+}
+
+forageStore.getItem(key, (err, value) => {
+    if (err) {
+        console.log(err);
+    } else if (value) {
+        if (Date.now() - value.ts > expired) {
+            forageStore.clear(key);
+            fetch(main);
+        } else {
+            main(value.data);
+        }
+    } else {
+        fetch(main);
     }
-    const data = parsed.filter(d => {
-        return locations.indexOf(d.location) >= 0
-    }).filter(d => {
-        return d.date > moment(start, 'YYYY-MM-DD')
-    });
-    main(data);
 })
 
 let id = document.querySelector('#selected option:checked').value;
@@ -108,9 +102,21 @@ const xAxes = [{
         }
     },
     ticks: {
-        min: moment(start, 'YYYY-MM-DD') // Sunday
+        min: dayjs(start, 'YYYY-MM-DD') // Sunday
     }
 }];
+
+function grouping (data, country) {
+    return data.filter(d => d.location === country)
+        .reduce((chunk, item, index) => {
+            const chunkIndex = Math.floor(index / period)
+            if (!chunk[chunkIndex]) {
+                chunk[chunkIndex] = [] // start a new chunk
+            }
+            chunk[chunkIndex].push(item)
+            return chunk
+        }, [])
+}
 
 function main (data) {
     const charts = {
@@ -239,7 +245,7 @@ function main (data) {
     const latest = charts[id].datasets[0].data.slice(-3);
     latest.slice().reverse().forEach(obj => {
         if (obj.x && !setDate) {
-            document.getElementById('latest').innerHTML = obj.x.format('DD.MM.YYYY');
+            document.getElementById('latest').innerHTML = dayjs(obj.x).format('DD.MM.YYYY');
             setDate = true;
         }
     })

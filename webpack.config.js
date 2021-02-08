@@ -23,7 +23,7 @@ module.exports = {
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             inject: 'body',
-            template: './src/index.html',
+            template: './index.html',
             filename: 'index.html'
         }),
         new webpack.HotModuleReplacementPlugin({}),
