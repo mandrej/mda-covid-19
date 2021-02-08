@@ -77,11 +77,9 @@ forageStore.getItem(key, (err, value) => {
         console.log(err);
     } else if (value) {
         if (Date.now() - value.ts > expired) {
-            forageStore.clear(key);
             fetch(main);
-        } else {
-            main(value.data);
         }
+        main(value.data);
     } else {
         fetch(main);
     }
