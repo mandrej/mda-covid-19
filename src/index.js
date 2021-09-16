@@ -14,17 +14,17 @@ const locations = [
     'Croatia',
     'Bulgaria',
     'Greece',
-    'Sweden',
+    // 'Sweden',
     'Romania',
-    'Portugal',
-    'Spain',
+    // 'Portugal',
+    // 'Spain',
     'Italy',
     'Austria',
     'Germany',
-    'United States',
-    'Russia'
+    // 'United States',
+    // 'Russia'
 ]
-const start = '2020-03-01';
+const start = '2020-08-30'; // '2020-03-01'
 const period = 7;
 const expired = 3600 * 1000;
 const key = 'mda';
@@ -41,7 +41,7 @@ function fetch (callback) {
         const parsed = [];
         const lines = resp.data.split('\n');
         const headers = lines[0].split(',');
-        const needed = ['date', 'location', 'new_cases_per_million', 'total_cases', 'total_deaths', 'total_cases_per_million']
+        const needed = ['date', 'location', 'new_cases_per_million', 'total_cases', 'total_deaths'] //, 'total_cases_per_million']
         for (let i = 1; i < lines.length; i++) {
             let obj = {};
             const currentline = lines[i].split(',');
@@ -66,7 +66,6 @@ function fetch (callback) {
         }).filter(d => {
             return d.date > dayjs(start, 'YYYY-MM-DD')
         });
-
         forageStore.setItem(key, { ts: Date.now(), data: data })
         callback(data)
     })
@@ -96,7 +95,7 @@ const xAxes = [{
     time: {
         unit: 'month',
         displayFormats: {
-            month: 'MMM YYYY'
+            month: 'MMM \'YY'
         }
     },
     ticks: {
@@ -197,46 +196,46 @@ function main (data) {
                 }
             }
         },
-        'total_cases_per_million': {
-            legend: false,
-            yAxes: [{
-                type: 'logarithmic',
-                position: 'right',
-                ticks: {
-                    min: 0.1,
-                    autoSkipPadding: 14,
-                    callback: function (value, index, values) {
-                        return Number(value.toString())
-                    }
-                }
-            }],
-            datasets: locations.map(country => {
-                const group = grouping(data, country);
-                return {
-                    label: country,
-                    data: group.map(chunk => {
-                        const average = chunk.map(d => d.total_cases_per_million).reduce((acc, cur) => acc + cur) / chunk.length
-                        const latest = chunk.slice(-1).pop()
-                        if (latest.date) {
-                            return { x: latest.date, y: average / 10 }
-                        } else {
-                            return skip
-                        }
-                    }),
-                    hidden: (shown.includes(country)) ? false : true
-                }
-            }),
-            tooltips: {
-                callbacks: {
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
-                        if (label) label += ': ';
-                        label += Math.round(tooltipItem.yLabel * 10) / 10;
-                        return label;
-                    }
-                }
-            }
-        }
+        // 'total_cases_per_million': {
+        //     legend: false,
+        //     yAxes: [{
+        //         type: 'logarithmic',
+        //         position: 'right',
+        //         ticks: {
+        //             min: 0.1,
+        //             autoSkipPadding: 14,
+        //             callback: function (value, index, values) {
+        //                 return Number(value.toString())
+        //             }
+        //         }
+        //     }],
+        //     datasets: locations.map(country => {
+        //         const group = grouping(data, country);
+        //         return {
+        //             label: country,
+        //             data: group.map(chunk => {
+        //                 const average = chunk.map(d => d.total_cases_per_million).reduce((acc, cur) => acc + cur) / chunk.length
+        //                 const latest = chunk.slice(-1).pop()
+        //                 if (latest.date) {
+        //                     return { x: latest.date, y: average / 10 }
+        //                 } else {
+        //                     return skip
+        //                 }
+        //             }),
+        //             hidden: (shown.includes(country)) ? false : true
+        //         }
+        //     }),
+        //     tooltips: {
+        //         callbacks: {
+        //             label: function (tooltipItem, data) {
+        //                 let label = data.datasets[tooltipItem.datasetIndex].label || '';
+        //                 if (label) label += ': ';
+        //                 label += Math.round(tooltipItem.yLabel * 10) / 10;
+        //                 return label;
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     let setDate = false;
