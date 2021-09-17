@@ -103,7 +103,7 @@ forageStore.getItem(key, (err, value) => {
 
 let id = document.querySelector('#selected option:checked').value;
 const ctx = document.getElementById('chart').getContext('2d');
-const skip = { x: null, y: null };
+const skip = { x: NaN, y: NaN };
 const shown = ['Serbia'];
 ga_add_country(shown[0]);
 
@@ -174,70 +174,25 @@ function main (data) {
                 }
             }
         },
-        // 'total_deaths_per_total_cases': {
-        //     legend: false,
-        //     yAxes: [{
-        //         type: 'linear',
-        //         position: 'right',
-        //         ticks: {
-        //             autoSkipPadding: 14,
-        //             callback: function (value, index, values) {
-        //                 return Math.round(value * 1000) / 10 + '%';
-        //             }
-        //         }
-        //     }],
-        //     datasets: locations.map(country => {
-        //         const group = grouping(data, country);
-        //         return {
-        //             label: country,
-        //             data: group.map(chunk => {
-        //                 const average = chunk.map(d => d.total_deaths / d.total_cases).reduce((acc, cur) => acc + cur) / chunk.length
-        //                 const latest = chunk.slice(-1).pop()
-        //                 if (latest.date) {
-        //                     return { x: latest.date, y: average }
-        //                 } else {
-        //                     return skip
-        //                 }
-        //             }),
-        //             hidden: (shown.includes(country)) ? false : true
-        //         }
-        //     }),
-        //     tooltips: {
-        //         callbacks: {
-        //             label: function (tooltipItem, data) {
-        //                 let label = data.datasets[tooltipItem.datasetIndex].label || '';
-        //                 if (label) label += ': ';
-        //                 label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
-        //                 return label;
-        //             }
-        //         }
-        //     }
-        // },
         'excess_mortality': {
             legend: false,
             yAxes: [{
                 type: 'linear',
                 position: 'right',
                 ticks: {
-                    min: -0.3,
+                    min: -20,
                     autoSkipPadding: 14,
                     callback: function (value, index, values) {
-                        return Math.round(value * 1000) / 10 + '%'
+                        return value + '%'
                     }
                 }
             }],
             datasets: locations.map(country => {
-                const group = grouping(data, country);
+                const group = data.filter(d => d.location === country && d.excess_mortality > 0);
                 return {
                     label: country,
-                    data: group.map(chunk => {
-                        const average = chunk.map(d => d.excess_mortality).reduce((acc, cur) => acc + cur) / chunk.length
-                        const latest = chunk.slice(-1).pop()
-                        if (latest.date) {
-                            return { x: latest.date, y: average / 10 }
-                        } else {
-                            return skip
-                        }
+                    data: group.map(d => {
+                        return { x: d.date, y: d.excess_mortality }
                     }),
                     hidden: (shown.includes(country)) ? false : true
                 }
@@ -247,7 +202,7 @@ function main (data) {
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
-                        label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+                        label += tooltipItem.yLabel + '%';
                         return label;
                     }
                 }
@@ -266,6 +221,7 @@ function main (data) {
 
     const graph = new Chart(ctx, {
         type: 'line',
+        responsive: true,
         data: {
             datasets: charts[id].datasets
         },
@@ -333,6 +289,8 @@ Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
 Chart.defaults.global.elements.line.spanGaps = true;
+// Chart.defaults.global.elements.line.cubicInterpolationMode = 'monotone';
+// Chart.defaults.global.elements.line.tension = 0;
 Chart.defaults.global.elements.point.radius = 5;
 Chart.defaults.global.elements.point.hoverRadius = 8;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
