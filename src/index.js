@@ -37,11 +37,28 @@ const forageStore = localforage.createInstance({
 });
 
 function fetch (callback) {
+    /**
+     * iso_code, continent, location, date, total_cases, new_cases, new_cases_smoothed,
+     * total_deaths, new_deaths, new_deaths_smoothed, total_cases_per_million, 
+     * new_cases_per_million, new_cases_smoothed_per_million, total_deaths_per_million,
+     * new_deaths_per_million, new_deaths_smoothed_per_million, reproduction_rate, icu_patients,
+     * icu_patients_per_million, hosp_patients, hosp_patients_per_million, weekly_icu_admissions,
+     * weekly_icu_admissions_per_million, weekly_hosp_admissions, weekly_hosp_admissions_per_million,
+     * new_tests, total_tests, total_tests_per_thousand, new_tests_per_thousand, new_tests_smoothed,
+     * new_tests_smoothed_per_thousand, positive_rate, tests_per_case, tests_units, total_vaccinations,
+     * people_vaccinated, people_fully_vaccinated, total_boosters, new_vaccinations, 
+     * new_vaccinations_smoothed, total_vaccinations_per_hundred, people_vaccinated_per_hundred,
+     * people_fully_vaccinated_per_hundred, total_boosters_per_hundred, 
+     * new_vaccinations_smoothed_per_million, stringency_index, population, population_density, 
+     * median_age, aged_65_older, aged_70_older, gdp_per_capita, extreme_poverty, cardiovasc_death_rate,
+     * diabetes_prevalence, female_smokers, male_smokers, handwashing_facilities, 
+     * hospital_beds_per_thousand, life_expectancy, human_development_index, excess_mortality
+     */
     axios.get('https://covid.ourworldindata.org/data/owid-covid-data.csv').then(resp => {
         const parsed = [];
         const lines = resp.data.split('\n');
         const headers = lines[0].split(',');
-        const needed = ['date', 'location', 'new_cases_per_million', 'total_cases', 'total_deaths'] //, 'total_cases_per_million']
+        const needed = ['date', 'location', 'new_cases_per_million', 'excess_mortality'] //'total_cases', 'total_deaths', 'total_cases_per_million']
         for (let i = 1; i < lines.length; i++) {
             let obj = {};
             const currentline = lines[i].split(',');
@@ -123,7 +140,7 @@ function main (data) {
                 type: 'logarithmic',
                 position: 'right',
                 ticks: {
-                    min: 0.1,
+                    min: 0.5,
                     autoSkipPadding: 14,
                     callback: function (value, index, values) {
                         return Number(value.toString())
@@ -157,15 +174,55 @@ function main (data) {
                 }
             }
         },
-        'total_deaths_per_total_cases': {
+        // 'total_deaths_per_total_cases': {
+        //     legend: false,
+        //     yAxes: [{
+        //         type: 'linear',
+        //         position: 'right',
+        //         ticks: {
+        //             autoSkipPadding: 14,
+        //             callback: function (value, index, values) {
+        //                 return Math.round(value * 1000) / 10 + '%';
+        //             }
+        //         }
+        //     }],
+        //     datasets: locations.map(country => {
+        //         const group = grouping(data, country);
+        //         return {
+        //             label: country,
+        //             data: group.map(chunk => {
+        //                 const average = chunk.map(d => d.total_deaths / d.total_cases).reduce((acc, cur) => acc + cur) / chunk.length
+        //                 const latest = chunk.slice(-1).pop()
+        //                 if (latest.date) {
+        //                     return { x: latest.date, y: average }
+        //                 } else {
+        //                     return skip
+        //                 }
+        //             }),
+        //             hidden: (shown.includes(country)) ? false : true
+        //         }
+        //     }),
+        //     tooltips: {
+        //         callbacks: {
+        //             label: function (tooltipItem, data) {
+        //                 let label = data.datasets[tooltipItem.datasetIndex].label || '';
+        //                 if (label) label += ': ';
+        //                 label += Math.round(tooltipItem.yLabel * 1000) / 10 + '%';
+        //                 return label;
+        //             }
+        //         }
+        //     }
+        // },
+        'excess_mortality': {
             legend: false,
             yAxes: [{
                 type: 'linear',
                 position: 'right',
                 ticks: {
+                    min: -0.3,
                     autoSkipPadding: 14,
                     callback: function (value, index, values) {
-                        return Math.round(value * 1000) / 10 + '%';
+                        return Math.round(value * 1000) / 10 + '%'
                     }
                 }
             }],
@@ -174,10 +231,10 @@ function main (data) {
                 return {
                     label: country,
                     data: group.map(chunk => {
-                        const average = chunk.map(d => d.total_deaths / d.total_cases).reduce((acc, cur) => acc + cur) / chunk.length
+                        const average = chunk.map(d => d.excess_mortality).reduce((acc, cur) => acc + cur) / chunk.length
                         const latest = chunk.slice(-1).pop()
                         if (latest.date) {
-                            return { x: latest.date, y: average }
+                            return { x: latest.date, y: average / 10 }
                         } else {
                             return skip
                         }
@@ -195,47 +252,7 @@ function main (data) {
                     }
                 }
             }
-        },
-        // 'total_cases_per_million': {
-        //     legend: false,
-        //     yAxes: [{
-        //         type: 'logarithmic',
-        //         position: 'right',
-        //         ticks: {
-        //             min: 0.1,
-        //             autoSkipPadding: 14,
-        //             callback: function (value, index, values) {
-        //                 return Number(value.toString())
-        //             }
-        //         }
-        //     }],
-        //     datasets: locations.map(country => {
-        //         const group = grouping(data, country);
-        //         return {
-        //             label: country,
-        //             data: group.map(chunk => {
-        //                 const average = chunk.map(d => d.total_cases_per_million).reduce((acc, cur) => acc + cur) / chunk.length
-        //                 const latest = chunk.slice(-1).pop()
-        //                 if (latest.date) {
-        //                     return { x: latest.date, y: average / 10 }
-        //                 } else {
-        //                     return skip
-        //                 }
-        //             }),
-        //             hidden: (shown.includes(country)) ? false : true
-        //         }
-        //     }),
-        //     tooltips: {
-        //         callbacks: {
-        //             label: function (tooltipItem, data) {
-        //                 let label = data.datasets[tooltipItem.datasetIndex].label || '';
-        //                 if (label) label += ': ';
-        //                 label += Math.round(tooltipItem.yLabel * 10) / 10;
-        //                 return label;
-        //             }
-        //         }
-        //     }
-        // }
+        }
     }
 
     let setDate = false;
