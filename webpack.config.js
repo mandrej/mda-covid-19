@@ -6,6 +6,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const Dotenv = require('dotenv-webpack');
 
 module.exports = {
+    mode: 'development',
     entry: {
         app: './src/index.js'
     },
@@ -14,12 +15,11 @@ module.exports = {
             resourceRegExp: /^\.\/locale$/,
             contextRegExp: /moment$/
         }),
-        new CopyPlugin([
-            {
-                from: './src/styles.css',
-                to: './styles.css',
-            }
-        ]),
+        new CopyPlugin({
+            patterns: [
+                { from: './src/styles.css', to: './styles.css' }
+            ]
+        }),
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             inject: 'body',
@@ -52,7 +52,9 @@ module.exports = {
         ]
     },
     devServer: {
-        contentBase: path.join(__dirname, 'dist'),
+        static: {
+            directory: path.join(__dirname, 'dist'),
+        },
         compress: true,
         port: 3000,
         hot: true

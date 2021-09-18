@@ -1,7 +1,7 @@
 import axios from 'axios'
+import dayjs from 'dayjs';
 import localforage from 'localforage'
 import Chart from 'chart.js';
-import dayjs from 'dayjs';
 import 'chartjs-adapter-dayjs';
 import 'chartjs-plugin-colorschemes';
 
@@ -140,7 +140,6 @@ function main (data) {
                 type: 'logarithmic',
                 position: 'right',
                 ticks: {
-                    min: 0.5,
                     autoSkipPadding: 14,
                     callback: function (value, index, values) {
                         return Number(value.toString())
@@ -164,7 +163,11 @@ function main (data) {
                 }
             }),
             tooltips: {
+                titleAlign: 'right',
                 callbacks: {
+                    title: function (tooltipItem, data) {
+                        return dayjs(tooltipItem[0].label).format('DD.MM.YYYY')
+                    },
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
@@ -180,7 +183,6 @@ function main (data) {
                 type: 'linear',
                 position: 'right',
                 ticks: {
-                    min: -20,
                     autoSkipPadding: 14,
                     callback: function (value, index, values) {
                         return value + '%'
@@ -198,7 +200,11 @@ function main (data) {
                 }
             }),
             tooltips: {
+                titleAlign: 'right',
                 callbacks: {
+                    title: function (tooltipItem, data) {
+                        return dayjs(tooltipItem[0].label).format('DD.MM.YYYY')
+                    },
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
                         if (label) label += ': ';
@@ -289,9 +295,8 @@ Chart.defaults.global.tooltips.mode = 'x';
 Chart.defaults.global.tooltips.intersect = true;
 Chart.defaults.global.elements.line.fill = false;
 Chart.defaults.global.elements.line.spanGaps = true;
-// Chart.defaults.global.elements.line.cubicInterpolationMode = 'monotone';
-// Chart.defaults.global.elements.line.tension = 0;
-Chart.defaults.global.elements.point.radius = 5;
+Chart.defaults.global.elements.line.tension = 0;
+Chart.defaults.global.elements.point.radius = 8;
 Chart.defaults.global.elements.point.hoverRadius = 8;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
 

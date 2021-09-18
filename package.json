@@ -1,17 +1,19 @@
 {
   "name": "mda-covid-19",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "COVID-19 Statistics per million inhabitants",
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "webpack-dev-server",
-    "build": "webpack -p --config webpack.config.js --hide-modules"
+    "dev": "webpack serve",
+    "build": "webpack build "
   },
   "keywords": [
     "covid",
     "covid19",
-    "covid-19"
+    "covid-19",
+    "cases",
+    "mortality"
   ],
   "author": "milan.andrejevic@gmail.com",
   "license": "ISC",
@@ -19,17 +21,17 @@
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
     "babel-loader": "^8.1.0",
-    "clean-webpack-plugin": "^3.0.0",
-    "copy-webpack-plugin": "^5.1.1",
-    "dotenv-webpack": "^1.7.0",
-    "html-webpack-plugin": "^4.2.0",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^9.0.1",
+    "dotenv-webpack": "^7.0.3",
+    "html-webpack-plugin": "^5.3.2",
+    "webpack": "^5.53.0",
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.2.1"
   },
   "dependencies": {
-    "axios": "0.18",
-    "chart.js": "^2.9.3",
+    "axios": "0.21.4",
+    "chart.js": "2.9.4",
     "chartjs-adapter-dayjs": "^1.0.0",
     "chartjs-plugin-colorschemes": "^0.4.0",
     "dayjs": "^1.10.4",
