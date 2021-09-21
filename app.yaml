@@ -1,4 +1,4 @@
-runtime: nodejs12
+runtime: nodejs14
 
 instance_class: F2
 automatic_scaling:
@@ -15,4 +15,4 @@ handlers:
     upload: dist/(.*)
     secure: always
 # https://mda-covid-19.appspot.com/
-# gcloud app deploy app.yaml --project=mda-covid-19 --version=2021-09-18
+# gcloud app deploy app.yaml --project=mda-covid-19 --version=2021-09-21

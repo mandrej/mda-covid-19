@@ -26,17 +26,50 @@ const locations = [
 ]
 const start = '2020-08-30'; // '2020-03-01'
 const period = 7;
-const expired = 3600 * 1000;
-const key = 'mda';
 
-const forageStore = localforage.createInstance({
+const store = localforage.createInstance({
     driver: [
         localforage.LOCALSTORAGE,
     ],
     name: 'covid-data'
 });
 
-function fetch (callback) {
+store.getItem('graph').then(graph => {
+    const now = Date.now()
+    const expired = 3600 * 1000;
+    let shown = ['Serbia'];
+    let id = document.querySelector('#selected option:checked').value;
+    if (graph) {
+        if (graph.name !== id) {
+            document.getElementById('selected').value = graph.name
+        }
+        id = graph.name
+        if (graph.list.length) {
+            shown = graph.list
+        }
+    } else {
+        store.setItem('graph', { name: id, list: shown })
+    }
+    // statistics
+    ga_select_graph(id);
+    shown.forEach(country => {
+        ga_add_country(country);
+    })
+
+    store.getItem('cache').then(cache => {
+        if (cache) {
+            if (now - cache.ts > expired) {
+                fetch(id, shown, main);
+            } else {
+                main(id, shown, cache.data)
+            }
+        } else {
+            fetch(id, shown, main);
+        }
+    }).catch(err => console.log(err))
+}).catch(err => console.log(err))
+
+function fetch (id, shown, callback) {
     /**
      * iso_code, continent, location, date, total_cases, new_cases, new_cases_smoothed,
      * total_deaths, new_deaths, new_deaths_smoothed, total_cases_per_million, 
@@ -78,34 +111,18 @@ function fetch (callback) {
             }
             parsed.push(obj);
         }
-        const data = parsed.filter(d => {
+        const tmp = parsed.filter(d => {
             return locations.indexOf(d.location) >= 0
         }).filter(d => {
             return d.date > dayjs(start, 'YYYY-MM-DD')
         });
-        forageStore.setItem(key, { ts: Date.now(), data: data })
-        callback(data)
+        store.setItem('cache', { ts: Date.now(), data: tmp })
+        callback(arguments[0], arguments[1], tmp)
     })
 }
 
-forageStore.getItem(key, (err, value) => {
-    if (err) {
-        console.log(err);
-    } else if (value) {
-        if (Date.now() - value.ts > expired) {
-            fetch(main);
-        }
-        main(value.data);
-    } else {
-        fetch(main);
-    }
-})
-
-let id = document.querySelector('#selected option:checked').value;
 const ctx = document.getElementById('chart').getContext('2d');
 const skip = { x: NaN, y: NaN };
-const shown = ['Serbia'];
-ga_add_country(shown[0]);
 
 const xAxes = [{
     type: 'time',
@@ -132,10 +149,9 @@ function grouping (data, country) {
         }, [])
 }
 
-function main (data) {
+function main (id, shown, data) {
     const charts = {
         'daily_cases_per_million': {
-            legend: true,
             yAxes: [{
                 type: 'logarithmic',
                 position: 'right',
@@ -178,7 +194,6 @@ function main (data) {
             }
         },
         'excess_mortality': {
-            legend: false,
             yAxes: [{
                 type: 'linear',
                 position: 'right',
@@ -233,18 +248,18 @@ function main (data) {
         },
         options: {
             legend: {
-                display: charts[id].legend,
+                display: true,
                 onClick: function (event, item) {
                     const idx = shown.indexOf(item.text);
                     if (item.hidden) {
                         if (idx === -1) {
                             shown.push(item.text);
-                            ga_add_country(item.text);
+                            store.setItem('graph', { name: id, list: shown })
                         }
                     } else {
                         if (idx !== -1) {
                             shown.splice(idx, 1);
-                            ga_del_country(item.text);
+                            store.setItem('graph', { name: id, list: shown })
                         }
                     }
                     // Chart.defaults.global.legend.onClick.call(this, event, item);
@@ -261,10 +276,9 @@ function main (data) {
         }
     });
 
-    ga_select_graph(id);
     document.getElementById('selected').addEventListener('change', event => {
         id = event.target.value;
-        ga_select_graph(id);
+        store.setItem('graph', { name: id, list: shown })
 
         graph.data.datasets = charts[id].datasets;
         graph.data.datasets.forEach((dataset, i) => {
@@ -301,7 +315,7 @@ Chart.defaults.global.elements.point.hoverRadius = 8;
 Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
 
 function ga_select_graph (name, value = 1) {
-    gtag('event', 'select_graph', {
+    gtag('event', 'graph', {
         event_category: 'engagement',
         event_label: name,
         value: value
@@ -309,15 +323,7 @@ function ga_select_graph (name, value = 1) {
 }
 
 function ga_add_country (country, value = 1) {
-    gtag('event', 'add_country', {
-        event_category: 'engagement',
-        event_label: country,
-        value: value
-    })
-}
-
-function ga_del_country (country, value = 1) {
-    gtag('event', 'del_country', {
+    gtag('event', 'country', {
         event_category: 'engagement',
         event_label: country,
         value: value
