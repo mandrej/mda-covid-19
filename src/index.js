@@ -58,10 +58,9 @@ store.getItem('graph').then(graph => {
 
     store.getItem('cache').then(cache => {
         if (cache) {
+            main(id, shown, cache.data)
             if (now - cache.ts > expired) {
                 fetch(id, shown, main);
-            } else {
-                main(id, shown, cache.data)
             }
         } else {
             fetch(id, shown, main);
