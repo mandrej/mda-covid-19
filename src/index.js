@@ -25,7 +25,7 @@ const locations = [
     // 'United States',
     // 'Russia'
 ]
-const start = '2020-08-30'; // '2020-03-01'
+const start = dayjs('2020-08-30', 'YYYY-MM-DD'); // Sunday '2020-03-01'
 const period = 7;
 
 const store = localforage.createInstance({
@@ -114,7 +114,7 @@ function fetch (id, shown, callback) {
         const tmp = parsed.filter(d => {
             return locations.indexOf(d.location) >= 0
         }).filter(d => {
-            return d.date > dayjs(start, 'YYYY-MM-DD')
+            return d.date > start
         });
         store.setItem('cache', { ts: Date.now(), data: tmp })
         callback(arguments[0], arguments[1], tmp)
@@ -133,7 +133,7 @@ const xAxes = [{
         }
     },
     ticks: {
-        min: dayjs(start, 'YYYY-MM-DD') // Sunday
+        min: start
     }
 }];
 
