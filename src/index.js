@@ -1,9 +1,9 @@
 import axios from 'axios'
-import dayjs from 'dayjs';
 import localforage from 'localforage'
-import Chart from 'chart.js';
-import 'chartjs-adapter-dayjs';
-import 'chartjs-plugin-colorschemes';
+import { Chart, registerables } from 'chart.js';
+import 'chartjs-adapter-date-fns';
+import autocolors from 'chartjs-plugin-autocolors';
+Chart.register(...registerables, autocolors);
 
 const locations = [
     'Serbia',
@@ -25,7 +25,7 @@ const locations = [
     // 'United States',
     // 'Russia'
 ]
-const start = dayjs('2020-08-30', 'YYYY-MM-DD'); // Sunday '2020-03-01'
+const start = '2020-08-30'; // Sunday '2020-03-01'
 const period = 7;
 
 const store = localforage.createInstance({
@@ -99,7 +99,7 @@ function fetch (id, shown, callback) {
                 if (needed.indexOf(headers[j]) >= 0) {
                     switch (headers[j]) {
                         case 'date':
-                            obj[headers[j]] = dayjs(currentline[j], 'YYYY-MM-DD');
+                            obj[headers[j]] = currentline[j];
                             break
                         case 'location':
                             obj[headers[j]] = currentline[j];
@@ -124,18 +124,18 @@ function fetch (id, shown, callback) {
 const ctx = document.getElementById('chart').getContext('2d');
 const skip = { x: NaN, y: NaN };
 
-const xAxes = [{
+const xAxes = {
     type: 'time',
     time: {
         unit: 'month',
         displayFormats: {
-            month: 'MMM \'YY'
+            quarter: 'MMM YYYY'
         }
     },
     ticks: {
         min: start
     }
-}];
+};
 
 function grouping (data, country) {
     return data.filter(d => d.location === country)
@@ -152,7 +152,7 @@ function grouping (data, country) {
 function main (id, shown, data) {
     const charts = {
         'daily_cases_per_million': {
-            yAxes: [{
+            yAxes: {
                 type: 'logarithmic',
                 position: 'right',
                 ticks: {
@@ -161,7 +161,7 @@ function main (id, shown, data) {
                         return Number(value.toString())
                     }
                 }
-            }],
+            },
             datasets: locations.map(country => {
                 const group = grouping(data, country);
                 return {
@@ -182,7 +182,7 @@ function main (id, shown, data) {
                 titleAlign: 'right',
                 callbacks: {
                     title: function (tooltipItem, data) {
-                        return dayjs(tooltipItem[0].label).format('DD.MM.YYYY')
+                        return tooltipItem[0].label
                     },
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
@@ -194,7 +194,7 @@ function main (id, shown, data) {
             }
         },
         'excess_mortality': {
-            yAxes: [{
+            yAxes: {
                 type: 'linear',
                 position: 'right',
                 ticks: {
@@ -203,7 +203,7 @@ function main (id, shown, data) {
                         return value + '%'
                     }
                 }
-            }],
+            },
             datasets: locations.map(country => {
                 const group = data.filter(d => d.location === country && d.excess_mortality > 0);
                 return {
@@ -218,7 +218,7 @@ function main (id, shown, data) {
                 titleAlign: 'right',
                 callbacks: {
                     title: function (tooltipItem, data) {
-                        return dayjs(tooltipItem[0].label).format('DD.MM.YYYY')
+                        return tooltipItem[0].label
                     },
                     label: function (tooltipItem, data) {
                         let label = data.datasets[tooltipItem.datasetIndex].label || '';
@@ -235,7 +235,7 @@ function main (id, shown, data) {
     const latest = charts[id].datasets[0].data.slice(-3);
     latest.slice().reverse().forEach(obj => {
         if (obj.x && !setDate) {
-            document.getElementById('latest').innerHTML = dayjs(obj.x).format('DD.MM.YYYY');
+            document.getElementById('latest').innerHTML = obj.x;
             setDate = true;
         }
     })
@@ -268,11 +268,16 @@ function main (id, shown, data) {
                     this.chart.update();
                 }
             },
+            plugins: {
+                tooltips: charts[id].tooltips,
+                autocolors: {
+                    enabled: true
+                }
+            },
             scales: {
                 xAxes: xAxes,
                 yAxes: charts[id].yAxes
-            },
-            tooltips: charts[id].tooltips
+            }
         }
     });
 
@@ -286,7 +291,7 @@ function main (id, shown, data) {
             meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
         graph.options.scales.yAxes = charts[id].yAxes;
-        graph.options.tooltips = charts[id].tooltips;
+        graph.options.plugins.tooltips = charts[id].tooltips;
         graph.update();
     })
 
@@ -302,17 +307,16 @@ function main (id, shown, data) {
     document.getElementById('loader').style.display = 'none';
 }
 
-Chart.defaults.global.aspectRatio = 1.8;
-Chart.defaults.global.legend.position = 'bottom';
-Chart.defaults.global.legend.labels.boxWidth = 12;
-Chart.defaults.global.tooltips.mode = 'x';
-Chart.defaults.global.tooltips.intersect = true;
-Chart.defaults.global.elements.line.fill = false;
-Chart.defaults.global.elements.line.spanGaps = true;
-Chart.defaults.global.elements.line.tension = 0;
-Chart.defaults.global.elements.point.radius = 8;
-Chart.defaults.global.elements.point.hoverRadius = 8;
-Chart.defaults.global.plugins.colorschemes.scheme = 'tableau.Tableau10';
+Chart.defaults.aspectRatio = 1.8;
+Chart.defaults.plugins.legend.position = 'bottom';
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.interaction.mode = 'x';
+Chart.defaults.interaction.intersect = true;
+Chart.defaults.elements.line.fill = false;
+Chart.defaults.elements.line.tension = 0;
+Chart.defaults.elements.point.radius = 8;
+Chart.defaults.elements.point.hoverRadius = 8;
+// Chart.defaults.plugins.colorschemes.scheme = 'tableau.Tableau10';
 
 function ga_select_graph (name, value = 1) {
     gtag('event', 'graph', {

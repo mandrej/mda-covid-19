@@ -21,6 +21,7 @@
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
     "babel-loader": "^8.1.0",
+    "chartjs-plugin-autocolors": "^0.0.4",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^9.0.1",
     "dotenv-webpack": "^7.0.3",
@@ -31,10 +32,9 @@
   },
   "dependencies": {
     "axios": "0.21.4",
-    "chart.js": "2.9.4",
-    "chartjs-adapter-dayjs": "^1.0.0",
-    "chartjs-plugin-colorschemes": "^0.4.0",
-    "dayjs": "^1.10.4",
+    "chart.js": "^3.5.1",
+    "chartjs-adapter-date-fns": "^2.0.0",
+    "date-fns": "^2.24.0",
     "express": "^4.17.1",
     "localforage": "^1.7.3"
   }
