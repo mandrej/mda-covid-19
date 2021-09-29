@@ -1,9 +1,10 @@
 import axios from 'axios'
 import localforage from 'localforage'
 import { Chart, registerables } from 'chart.js';
+import { parseISO, format } from 'date-fns'
+import { enUS } from 'date-fns/locale'
 import 'chartjs-adapter-date-fns';
-import autocolors from 'chartjs-plugin-autocolors';
-Chart.register(...registerables, autocolors);
+Chart.register(...registerables);
 
 const locations = [
     'Serbia',
@@ -25,6 +26,18 @@ const locations = [
     // 'United States',
     // 'Russia'
 ]
+const tableau20 = [[31, 119, 180], [174, 199, 232], [255, 127, 14], [255, 187, 120],
+[44, 160, 44], [152, 223, 138], [214, 39, 40], [255, 152, 150], [148, 103, 189],
+[197, 176, 213], [140, 86, 75], [196, 156, 148], [227, 119, 194], [247, 182, 210],
+[127, 127, 127], [199, 199, 199], [188, 189, 34], [219, 219, 141], [23, 190, 207],
+[158, 218, 229]]
+
+const colors = Array.from(locations, (el, i) => {
+    return [
+        'rgba(' + [...tableau20[i], 1] + ')',
+        'rgba(' + [...tableau20[i], .5] + ')',
+    ]
+})
 const start = '2020-08-30'; // Sunday '2020-03-01'
 const period = 7;
 
@@ -126,10 +139,15 @@ const skip = { x: NaN, y: NaN };
 
 const xAxes = {
     type: 'time',
+    adapters: {
+        date: {
+            locale: enUS
+        }
+    },
     time: {
         unit: 'month',
         displayFormats: {
-            quarter: 'MMM YYYY'
+            month: 'MMM yyyy'
         }
     },
     ticks: {
@@ -150,8 +168,20 @@ function grouping (data, country) {
 }
 
 function main (id, shown, data) {
+    function readLatest (id) {
+        let setDate = false;
+        const latest = charts[id].datasets[0].data.slice(-3);
+        latest.slice().reverse().forEach(obj => {
+            if (obj.x && !setDate) {
+                document.getElementById('latest').innerHTML = format(parseISO(obj.x), 'MM/dd/yyyy');
+                setDate = true;
+            }
+        })
+    }
+
     const charts = {
         'daily_cases_per_million': {
+            title: 'Daily cases / per 100k',
             yAxes: {
                 type: 'logarithmic',
                 position: 'right',
@@ -162,7 +192,7 @@ function main (id, shown, data) {
                     }
                 }
             },
-            datasets: locations.map(country => {
+            datasets: locations.map((country, idx) => {
                 const group = grouping(data, country);
                 return {
                     label: country,
@@ -175,25 +205,14 @@ function main (id, shown, data) {
                             return skip
                         }
                     }),
+                    borderColor: colors[idx][0],
+                    backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
                 }
-            }),
-            tooltips: {
-                titleAlign: 'right',
-                callbacks: {
-                    title: function (tooltipItem, data) {
-                        return tooltipItem[0].label
-                    },
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
-                        if (label) label += ': ';
-                        label += Math.round(tooltipItem.yLabel * 10) / 10;
-                        return label;
-                    }
-                }
-            }
+            })
         },
         'excess_mortality': {
+            title: 'Excess mortality',
             yAxes: {
                 type: 'linear',
                 position: 'right',
@@ -204,41 +223,20 @@ function main (id, shown, data) {
                     }
                 }
             },
-            datasets: locations.map(country => {
+            datasets: locations.map((country, idx) => {
                 const group = data.filter(d => d.location === country && d.excess_mortality > 0);
                 return {
                     label: country,
                     data: group.map(d => {
                         return { x: d.date, y: d.excess_mortality }
                     }),
+                    borderColor: colors[idx][0],
+                    backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
                 }
-            }),
-            tooltips: {
-                titleAlign: 'right',
-                callbacks: {
-                    title: function (tooltipItem, data) {
-                        return tooltipItem[0].label
-                    },
-                    label: function (tooltipItem, data) {
-                        let label = data.datasets[tooltipItem.datasetIndex].label || '';
-                        if (label) label += ': ';
-                        label += tooltipItem.yLabel + '%';
-                        return label;
-                    }
-                }
-            }
+            })
         }
     }
-
-    let setDate = false;
-    const latest = charts[id].datasets[0].data.slice(-3);
-    latest.slice().reverse().forEach(obj => {
-        if (obj.x && !setDate) {
-            document.getElementById('latest').innerHTML = obj.x;
-            setDate = true;
-        }
-    })
 
     const graph = new Chart(ctx, {
         type: 'line',
@@ -247,40 +245,44 @@ function main (id, shown, data) {
             datasets: charts[id].datasets
         },
         options: {
-            legend: {
-                display: true,
-                onClick: function (event, item) {
-                    const idx = shown.indexOf(item.text);
-                    if (item.hidden) {
-                        if (idx === -1) {
-                            shown.push(item.text);
-                            store.setItem('graph', { name: id, list: shown })
-                        }
-                    } else {
-                        if (idx !== -1) {
-                            shown.splice(idx, 1);
-                            store.setItem('graph', { name: id, list: shown })
-                        }
-                    }
-                    // Chart.defaults.global.legend.onClick.call(this, event, item);
-                    const meta = this.chart.getDatasetMeta(item.datasetIndex);
-                    meta.hidden = (shown.includes(item.text)) ? false : true;
-                    this.chart.update();
-                }
-            },
-            plugins: {
-                tooltips: charts[id].tooltips,
-                autocolors: {
-                    enabled: true
-                }
-            },
             scales: {
                 xAxes: xAxes,
                 yAxes: charts[id].yAxes
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: charts[id].title,
+                    font: {
+                        size: 14
+                    }
+                },
+                legend: {
+                    display: true,
+                    onClick: function (event, item, legend) {
+                        const idx = shown.indexOf(item.text);
+                        console.log(idx);
+                        if (item.hidden) {
+                            if (idx === -1) {
+                                shown.push(item.text);
+                                store.setItem('graph', { name: id, list: shown })
+                            }
+                        } else {
+                            if (idx !== -1) {
+                                shown.splice(idx, 1);
+                                store.setItem('graph', { name: id, list: shown })
+                            }
+                        }
+                        const meta = this.chart.getDatasetMeta(item.datasetIndex);
+                        meta.hidden = (shown.includes(item.text)) ? false : true;
+                        this.chart.update();
+                    }
+                }
             }
         }
     });
 
+    readLatest(id);
     document.getElementById('selected').addEventListener('change', event => {
         id = event.target.value;
         store.setItem('graph', { name: id, list: shown })
@@ -291,8 +293,9 @@ function main (id, shown, data) {
             meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
         graph.options.scales.yAxes = charts[id].yAxes;
-        graph.options.plugins.tooltips = charts[id].tooltips;
+        graph.options.plugins.title.text = charts[id].title;
         graph.update();
+        readLatest(id);
     })
 
     document.getElementById('download').addEventListener('click', event => {

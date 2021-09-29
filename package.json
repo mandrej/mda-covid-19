@@ -21,7 +21,6 @@
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
     "babel-loader": "^8.1.0",
-    "chartjs-plugin-autocolors": "^0.0.4",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^9.0.1",
     "dotenv-webpack": "^7.0.3",
