@@ -1,10 +1,9 @@
 import axios from 'axios'
 import localforage from 'localforage'
-import { Chart, registerables } from 'chart.js';
+import Chart from 'chart.js/auto';
 import { parseISO, format } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import 'chartjs-adapter-date-fns';
-Chart.register(...registerables);
 
 const locations = [
     'Serbia',
@@ -39,6 +38,7 @@ const colors = Array.from(locations, (el, i) => {
     ]
 })
 const start = '2020-08-30'; // Sunday '2020-03-01'
+const dateFormat = 'MMM dd, yyyy';
 const period = 7;
 
 const store = localforage.createInstance({
@@ -138,17 +138,15 @@ const ctx = document.getElementById('chart').getContext('2d');
 const skip = { x: NaN, y: NaN };
 
 const xAxes = {
-    type: 'time',
     adapters: {
         date: {
             locale: enUS
         }
     },
+    type: 'time',
     time: {
         unit: 'month',
-        displayFormats: {
-            month: 'MMM yyyy'
-        }
+        tooltipFormat: dateFormat
     },
     ticks: {
         min: start
@@ -173,7 +171,7 @@ function main (id, shown, data) {
         const latest = charts[id].datasets[0].data.slice(-3);
         latest.slice().reverse().forEach(obj => {
             if (obj.x && !setDate) {
-                document.getElementById('latest').innerHTML = format(parseISO(obj.x), 'MM/dd/yyyy');
+                document.getElementById('latest').innerHTML = format(parseISO(obj.x), dateFormat);
                 setDate = true;
             }
         })
@@ -277,6 +275,9 @@ function main (id, shown, data) {
                         meta.hidden = (shown.includes(item.text)) ? false : true;
                         this.chart.update();
                     }
+                },
+                tooltip: {
+                    titleAlign: 'right'
                 }
             }
         }
