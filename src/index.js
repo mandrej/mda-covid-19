@@ -37,7 +37,7 @@ const colors = Array.from(locations, (el, i) => {
         'rgba(' + [...tableau20[i], .5] + ')',
     ]
 })
-const start = '2020-08-30'; // Sunday '2020-03-01'
+const start = '2020-09-27'; // Sunday '2020-03-01'
 const dateFormat = 'MMM dd, yyyy';
 const period = 7;
 
@@ -104,7 +104,7 @@ function fetch (id, shown, callback) {
         const parsed = [];
         const lines = resp.data.split('\n');
         const headers = lines[0].split(',');
-        const needed = ['date', 'location', 'new_cases_per_million', 'excess_mortality'] //'total_cases', 'total_deaths', 'total_cases_per_million']
+        const needed = ['date', 'location', 'new_cases_per_million', 'positive_rate', 'excess_mortality'] //'total_cases', 'total_deaths', 'total_cases_per_million']
         for (let i = 1; i < lines.length; i++) {
             let obj = {};
             const currentline = lines[i].split(',');
@@ -209,6 +209,37 @@ function main (id, shown, data) {
                 }
             })
         },
+        'positive_rate': {
+            title: 'Positive rate',
+            yAxes: {
+                type: 'linear',
+                position: 'right',
+                ticks: {
+                    autoSkipPadding: 14,
+                    callback: function (value, index, values) {
+                        return value + '%'
+                    }
+                }
+            },
+            datasets: locations.map((country, idx) => {
+                const group = grouping(data, country);
+                return {
+                    label: country,
+                    data: group.map(chunk => {
+                        const average = chunk.map(d => d.positive_rate).reduce((acc, cur) => acc + cur) / chunk.length
+                        const latest = chunk.slice(-1).pop()
+                        if (latest.date) {
+                            return { x: latest.date, y: average * 100 }
+                        } else {
+                            return skip
+                        }
+                    }),
+                    borderColor: colors[idx][0],
+                    backgroundColor: colors[idx][1],
+                    hidden: (shown.includes(country)) ? false : true
+                }
+            })
+        },
         'excess_mortality': {
             title: 'Excess mortality',
             yAxes: {
@@ -259,7 +290,6 @@ function main (id, shown, data) {
                     display: true,
                     onClick: function (event, item, legend) {
                         const idx = shown.indexOf(item.text);
-                        console.log(idx);
                         if (item.hidden) {
                             if (idx === -1) {
                                 shown.push(item.text);
