@@ -37,9 +37,11 @@ const colors = Array.from(locations, (el, i) => {
         'rgba(' + [...tableau20[i], .5] + ')',
     ]
 })
+let ctx = document.querySelector('.box canvas').getContext('2d');
 const start = '2020-09-27'; // Sunday '2020-03-01'
 const dateFormat = 'MMM dd, yyyy';
 const period = 7;
+const skip = { x: NaN, y: NaN };
 
 const store = localforage.createInstance({
     driver: [
@@ -48,28 +50,28 @@ const store = localforage.createInstance({
     name: 'covid-data'
 });
 
-store.getItem('graph').then(graph => {
+store.getItem('chart').then(chart => {
     const now = Date.now()
     const expired = 3600 * 1000;
     let shown = ['Serbia'];
     let id = document.querySelector('#selected option:checked').value;
-    if (graph) {
-        if (graph.name !== id) {
-            document.getElementById('selected').value = graph.name
+    if (chart) {
+        if (chart.name !== id) {
+            document.getElementById('selected').value = chart.name
         }
-        id = graph.name
-        if (graph.list.length) {
-            shown = graph.list
+        id = chart.name
+        if (chart.list.length) {
+            shown = chart.list
         }
     } else {
-        store.setItem('graph', { name: id, list: shown })
+        store.setItem('chart', { name: id, list: shown })
     }
     // statistics
     ga_select_graph(id);
     shown.forEach(country => {
         ga_add_country(country);
     })
-
+    
     store.getItem('cache').then(cache => {
         if (cache) {
             main(id, shown, cache.data)
@@ -130,12 +132,16 @@ function fetch (id, shown, callback) {
             return d.date > start
         });
         store.setItem('cache', { ts: Date.now(), data: tmp })
+
+        if (document.querySelector('.box canvas')) {
+            document.querySelector('.box canvas').remove();
+            const canvas = document.createElement('canvas');
+            document.querySelector('.box').append(canvas);
+            ctx = document.querySelector('.box canvas').getContext('2d');
+        }
         callback(arguments[0], arguments[1], tmp)
     })
 }
-
-const ctx = document.getElementById('chart').getContext('2d');
-const skip = { x: NaN, y: NaN };
 
 const xAxes = {
     adapters: {
@@ -153,22 +159,22 @@ const xAxes = {
     }
 };
 
-function grouping (data, country) {
-    return data.filter(d => d.location === country)
-        .reduce((chunk, item, index) => {
-            const chunkIndex = Math.floor(index / period)
-            if (!chunk[chunkIndex]) {
-                chunk[chunkIndex] = [] // start a new chunk
-            }
-            chunk[chunkIndex].push(item)
-            return chunk
-        }, [])
-}
-
 function main (id, shown, data) {
+    function grouping (data, country) {
+        return data.filter(d => d.location === country)
+            .reduce((chunk, item, index) => {
+                const chunkIndex = Math.floor(index / period)
+                if (!chunk[chunkIndex]) {
+                    chunk[chunkIndex] = [] // start a new chunk
+                }
+                chunk[chunkIndex].push(item)
+                return chunk
+            }, [])
+    }
+
     function readLatest (id) {
         let setDate = false;
-        const latest = charts[id].datasets[0].data.slice(-3);
+        const latest = conf[id].datasets[0].data.slice(-3);
         latest.slice().reverse().forEach(obj => {
             if (obj.x && !setDate) {
                 document.getElementById('latest').innerHTML = format(parseISO(obj.x), dateFormat);
@@ -177,7 +183,7 @@ function main (id, shown, data) {
         })
     }
 
-    const charts = {
+    const conf = {
         'daily_cases_per_million': {
             title: 'Daily cases / per 100k',
             yAxes: {
@@ -267,21 +273,21 @@ function main (id, shown, data) {
         }
     }
 
-    const graph = new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'line',
         responsive: true,
         data: {
-            datasets: charts[id].datasets
+            datasets: conf[id].datasets
         },
         options: {
             scales: {
                 xAxes: xAxes,
-                yAxes: charts[id].yAxes
+                yAxes: conf[id].yAxes
             },
             plugins: {
                 title: {
                     display: true,
-                    text: charts[id].title,
+                    text: conf[id].title,
                     font: {
                         size: 14
                     }
@@ -293,12 +299,12 @@ function main (id, shown, data) {
                         if (item.hidden) {
                             if (idx === -1) {
                                 shown.push(item.text);
-                                store.setItem('graph', { name: id, list: shown })
+                                store.setItem('chart', { name: id, list: shown })
                             }
                         } else {
                             if (idx !== -1) {
                                 shown.splice(idx, 1);
-                                store.setItem('graph', { name: id, list: shown })
+                                store.setItem('chart', { name: id, list: shown })
                             }
                         }
                         const meta = this.chart.getDatasetMeta(item.datasetIndex);
@@ -316,16 +322,16 @@ function main (id, shown, data) {
     readLatest(id);
     document.getElementById('selected').addEventListener('change', event => {
         id = event.target.value;
-        store.setItem('graph', { name: id, list: shown })
-
-        graph.data.datasets = charts[id].datasets;
-        graph.data.datasets.forEach((dataset, i) => {
-            let meta = graph.getDatasetMeta(i);
+        store.setItem('chart', { name: id, list: shown })
+        
+        chart.data.datasets = conf[id].datasets;
+        chart.data.datasets.forEach((dataset, i) => {
+            let meta = chart.getDatasetMeta(i);
             meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
-        graph.options.scales.yAxes = charts[id].yAxes;
-        graph.options.plugins.title.text = charts[id].title;
-        graph.update();
+        chart.options.scales.yAxes = conf[id].yAxes;
+        chart.options.plugins.title.text = conf[id].title;
+        chart.update();
         readLatest(id);
     })
 
@@ -353,7 +359,7 @@ Chart.defaults.elements.point.hoverRadius = 8;
 // Chart.defaults.plugins.colorschemes.scheme = 'tableau.Tableau10';
 
 function ga_select_graph (name, value = 1) {
-    gtag('event', 'graph', {
+    gtag('event', 'chart', {
         event_category: 'engagement',
         event_label: name,
         value: value
