@@ -183,6 +183,19 @@ function main (id, shown, data) {
         })
     }
 
+    function writeTick (value, index, values, percent = true) {
+        return (percent) ? value + '%' : value
+    }
+
+    function writeLabel (context, percentage = true) {
+        let lbl = context.dataset.label || '';
+        if (lbl) lbl += ': ';
+        if (context.parsed.y !== null) {
+            lbl += Math.round(context.parsed.y * 10) / 10;
+        }
+        return (percentage) ? lbl + '%' : lbl;
+    }
+
     const conf = {
         'daily_cases_per_million': {
             title: 'Daily cases / per 100k',
@@ -191,9 +204,7 @@ function main (id, shown, data) {
                 position: 'right',
                 ticks: {
                     autoSkipPadding: 14,
-                    callback: function (value, index, values) {
-                        return Number(value.toString())
-                    }
+                    callback: (value, index, values) => writeTick(value, index, values, false)
                 }
             },
             datasets: locations.map((country, idx) => {
@@ -213,7 +224,10 @@ function main (id, shown, data) {
                     backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
                 }
-            })
+            }),
+            callbacks: {
+                label: context => writeLabel(context, false)
+            }
         },
         'positive_rate': {
             title: 'Positive rate',
@@ -222,9 +236,7 @@ function main (id, shown, data) {
                 position: 'right',
                 ticks: {
                     autoSkipPadding: 14,
-                    callback: function (value, index, values) {
-                        return value + '%'
-                    }
+                    callback: (value, index, values) => writeTick(value, index, values)
                 }
             },
             datasets: locations.map((country, idx) => {
@@ -234,7 +246,7 @@ function main (id, shown, data) {
                     data: group.map(chunk => {
                         const average = chunk.map(d => d.positive_rate).reduce((acc, cur) => acc + cur) / chunk.length
                         const latest = chunk.slice(-1).pop()
-                        if (latest.date) {
+                        if (latest.date && latest.positive_rate > 0) {
                             return { x: latest.date, y: average * 100 }
                         } else {
                             return skip
@@ -244,7 +256,10 @@ function main (id, shown, data) {
                     backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
                 }
-            })
+            }),
+            callbacks: {
+                label: context => writeLabel(context)
+            }
         },
         'excess_mortality': {
             title: 'Excess mortality',
@@ -253,9 +268,7 @@ function main (id, shown, data) {
                 position: 'right',
                 ticks: {
                     autoSkipPadding: 14,
-                    callback: function (value, index, values) {
-                        return value + '%'
-                    }
+                    callback: (value, index, values) => writeTick(value, index, values)
                 }
             },
             datasets: locations.map((country, idx) => {
@@ -269,7 +282,10 @@ function main (id, shown, data) {
                     backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
                 }
-            })
+            }),
+            callbacks: {
+                label: context => writeLabel(context)
+            }
         }
     }
 
@@ -313,7 +329,8 @@ function main (id, shown, data) {
                     }
                 },
                 tooltip: {
-                    titleAlign: 'right'
+                    titleAlign: 'right',
+                    callbacks: conf[id].callbacks
                 }
             }
         }
@@ -330,6 +347,7 @@ function main (id, shown, data) {
             meta.hidden = (shown.includes(dataset.label)) ? false : true
         });
         chart.options.scales.yAxes = conf[id].yAxes;
+        chart.options.plugins.tooltip.callbacks = conf[id].callbacks;
         chart.options.plugins.title.text = conf[id].title;
         chart.update();
         readLatest(id);
