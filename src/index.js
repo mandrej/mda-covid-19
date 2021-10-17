@@ -1,7 +1,7 @@
 import axios from 'axios'
 import localforage from 'localforage'
 import Chart from 'chart.js/auto';
-import { parseISO, format } from 'date-fns'
+import { format, formatISO, parseISO, subMonths } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import 'chartjs-adapter-date-fns';
 
@@ -38,10 +38,15 @@ const colors = Array.from(locations, (el, i) => {
     ]
 })
 let ctx = document.querySelector('.box canvas').getContext('2d');
-const start = '2020-09-27'; // Sunday '2020-03-01'
+const start = '2020-09-27';
+let displayFrom = '2020-09-27'; // Sunday
 const dateFormat = 'MMM dd, yyyy';
 const period = 7;
 const skip = { x: null, y: null };
+const chartProperties = new Set(['name', 'shown'])
+const cacheProperties = new Set(['ts', 'latest', 'data'])
+// https://stackoverflow.com/questions/31128855/comparing-ecma6-sets-for-equality
+let areSetsEqual = (a, b) => a.size === b.size && [...a].every(value => b.has(value));
 
 const store = localforage.createInstance({
     driver: [
@@ -53,18 +58,24 @@ const store = localforage.createInstance({
 store.getItem('chart').then(chart => {
     const now = Date.now()
     const expired = 3600 * 1000;
-    let shown = ['Serbia'];
     let id = document.querySelector('#selected option:checked').value;
+    let shown = ['Serbia'];
+
     if (chart) {
-        if (chart.name !== id) {
-            document.getElementById('selected').value = chart.name
-        }
-        id = chart.name
-        if (chart.list.length) {
-            shown = chart.list
+        const params = new Set(Object.getOwnPropertyNames(chart))
+        if (areSetsEqual(chartProperties, params)) {
+            if (chart.name !== id) {
+                document.getElementById('selected').value = chart.name
+            }
+            id = chart.name
+            if (chart.shown.length) {
+                shown = chart.shown
+            }
+        } else {
+            store.setItem('chart', { name: id, shown: shown })
         }
     } else {
-        store.setItem('chart', { name: id, list: shown })
+        store.setItem('chart', { name: id, shown: shown })
     }
     // statistics
     ga_select_graph(id);
@@ -74,7 +85,13 @@ store.getItem('chart').then(chart => {
     
     store.getItem('cache').then(cache => {
         if (cache) {
-            main(id, shown, cache)
+            const properties = new Set(Object.getOwnPropertyNames(cache))
+            if (areSetsEqual(cacheProperties, properties)) {
+                displayFrom = formatISO(subMonths(new Date(cache.latest), 13), { representation: 'date' });
+                main(id, shown, cache)
+            } else {
+                fetch(id, shown, main);    
+            }
             if (now - cache.ts > expired) {
                 fetch(id, shown, main);
             }
@@ -158,7 +175,7 @@ const xAxes = {
         tooltipFormat: dateFormat
     },
     ticks: {
-        min: start
+        min: displayFrom
     }
 };
 
@@ -325,12 +342,12 @@ function main (id, shown, cache) {
                         if (legendItem.hidden) {
                             if (idx === -1) {
                                 shown.push(legendItem.text);
-                                store.setItem('chart', { name: id, list: shown })
+                                store.setItem('chart', { name: id, shown: shown })
                             }
                         } else {
                             if (idx !== -1) {
                                 shown.splice(idx, 1);
-                                store.setItem('chart', { name: id, list: shown })
+                                store.setItem('chart', { name: id, shown: shown })
                             }
                         }
                         const meta = ci.getDatasetMeta(legendItem.datasetIndex);
@@ -348,7 +365,7 @@ function main (id, shown, cache) {
 
     document.getElementById('selected').addEventListener('change', event => {
         id = event.target.value;
-        store.setItem('chart', { name: id, list: shown })
+        store.setItem('chart', { name: id, shown: shown })
         
         chart.data.datasets = conf[id].datasets;
         chart.data.datasets.forEach((dataset, i) => {
