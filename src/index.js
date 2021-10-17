@@ -41,7 +41,7 @@ let ctx = document.querySelector('.box canvas').getContext('2d');
 const start = '2020-09-27'; // Sunday '2020-03-01'
 const dateFormat = 'MMM dd, yyyy';
 const period = 7;
-const skip = { x: NaN, y: NaN };
+const skip = { x: null, y: null };
 
 const store = localforage.createInstance({
     driver: [
@@ -74,7 +74,7 @@ store.getItem('chart').then(chart => {
     
     store.getItem('cache').then(cache => {
         if (cache) {
-            main(id, shown, cache.data)
+            main(id, shown, cache)
             if (now - cache.ts > expired) {
                 fetch(id, shown, main);
             }
@@ -124,6 +124,7 @@ function fetch (id, shown, callback) {
                     }
                 }
             }
+            if (obj.positive_rate === 0) obj.positive_rate = null
             parsed.push(obj);
         }
         const tmp = parsed.filter(d => {
@@ -131,7 +132,9 @@ function fetch (id, shown, callback) {
         }).filter(d => {
             return d.date > start
         });
-        store.setItem('cache', { ts: Date.now(), data: tmp })
+        const date = tmp.slice().pop().date
+        const cache = { ts: Date.now(), latest: date, data: tmp }
+        store.setItem('cache', cache)
 
         if (document.querySelector('.box canvas')) {
             document.querySelector('.box canvas').remove();
@@ -139,7 +142,7 @@ function fetch (id, shown, callback) {
             document.querySelector('.box').append(canvas);
             ctx = document.querySelector('.box canvas').getContext('2d');
         }
-        callback(arguments[0], arguments[1], tmp)
+        callback(arguments[0], arguments[1], cache)
     })
 }
 
@@ -159,7 +162,10 @@ const xAxes = {
     }
 };
 
-function main (id, shown, data) {
+function main (id, shown, cache) {
+    const data = cache.data
+    document.getElementById('latest').innerHTML = format(parseISO(cache.latest), dateFormat);
+
     function grouping (data, country) {
         return data.filter(d => d.location === country)
             .reduce((chunk, item, index) => {
@@ -170,17 +176,6 @@ function main (id, shown, data) {
                 chunk[chunkIndex].push(item)
                 return chunk
             }, [])
-    }
-
-    function readLatest (id) {
-        let setDate = false;
-        const latest = conf[id].datasets[0].data.slice(-3);
-        latest.slice().reverse().forEach(obj => {
-            if (obj.x && !setDate) {
-                document.getElementById('latest').innerHTML = format(parseISO(obj.x), dateFormat);
-                setDate = true;
-            }
-        })
     }
 
     function writeTick (value, index, values, percent = true) {
@@ -220,6 +215,7 @@ function main (id, shown, data) {
                             return skip
                         }
                     }),
+                    fill: false,
                     borderColor: colors[idx][0],
                     backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
@@ -244,14 +240,17 @@ function main (id, shown, data) {
                 return {
                     label: country,
                     data: group.map(chunk => {
-                        const average = chunk.map(d => d.positive_rate).reduce((acc, cur) => acc + cur) / chunk.length
+                        const filtered = chunk.filter(d => d.positive_rate !== null)
+                        if (!filtered.length) return skip
+                        const average = filtered.map(d => d.positive_rate).reduce((acc, cur) => acc + cur) / filtered.length
                         const latest = chunk.slice(-1).pop()
-                        if (latest.date && latest.positive_rate > 0) {
+                        if (latest.date) {
                             return { x: latest.date, y: average * 100 }
                         } else {
                             return skip
                         }
                     }),
+                    fill: false,
                     borderColor: colors[idx][0],
                     backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
@@ -278,6 +277,7 @@ function main (id, shown, data) {
                     data: group.map(d => {
                         return { x: d.date, y: d.excess_mortality }
                     }),
+                    fill: true,
                     borderColor: colors[idx][0],
                     backgroundColor: colors[idx][1],
                     hidden: (shown.includes(country)) ? false : true
@@ -310,11 +310,21 @@ function main (id, shown, data) {
                 },
                 legend: {
                     display: true,
-                    onClick: function (event, item, legend) {
-                        const idx = shown.indexOf(item.text);
-                        if (item.hidden) {
+                    onClick: function (event, legendItem, legend) {
+                        const ci = legend.chart;
+                        // const index = legendItem.datasetIndex;
+                        // if (ci.isDatasetVisible(index)) {
+                        //     ci.hide(index);
+                        //     legendItem.hidden = true;
+                        // } else {
+                        //     ci.show(index);
+                        //     legendItem.hidden = false;
+                        // }
+
+                        const idx = shown.indexOf(legendItem.text);
+                        if (legendItem.hidden) {
                             if (idx === -1) {
-                                shown.push(item.text);
+                                shown.push(legendItem.text);
                                 store.setItem('chart', { name: id, list: shown })
                             }
                         } else {
@@ -323,9 +333,9 @@ function main (id, shown, data) {
                                 store.setItem('chart', { name: id, list: shown })
                             }
                         }
-                        const meta = this.chart.getDatasetMeta(item.datasetIndex);
-                        meta.hidden = (shown.includes(item.text)) ? false : true;
-                        this.chart.update();
+                        const meta = ci.getDatasetMeta(legendItem.datasetIndex);
+                        meta.hidden = (shown.includes(legendItem.text)) ? false : true;
+                        ci.update();
                     }
                 },
                 tooltip: {
@@ -336,7 +346,6 @@ function main (id, shown, data) {
         }
     });
 
-    readLatest(id);
     document.getElementById('selected').addEventListener('change', event => {
         id = event.target.value;
         store.setItem('chart', { name: id, list: shown })
@@ -350,7 +359,6 @@ function main (id, shown, data) {
         chart.options.plugins.tooltip.callbacks = conf[id].callbacks;
         chart.options.plugins.title.text = conf[id].title;
         chart.update();
-        readLatest(id);
     })
 
     document.getElementById('download').addEventListener('click', event => {
@@ -370,11 +378,10 @@ Chart.defaults.plugins.legend.position = 'bottom';
 Chart.defaults.plugins.legend.labels.boxWidth = 12;
 Chart.defaults.interaction.mode = 'x';
 Chart.defaults.interaction.intersect = true;
-Chart.defaults.elements.line.fill = false;
+// Chart.defaults.elements.line.fill = false;
 Chart.defaults.elements.line.tension = 0;
 Chart.defaults.elements.point.radius = 8;
 Chart.defaults.elements.point.hoverRadius = 8;
-// Chart.defaults.plugins.colorschemes.scheme = 'tableau.Tableau10';
 
 function ga_select_graph (name, value = 1) {
     gtag('event', 'chart', {
