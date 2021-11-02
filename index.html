@@ -1,43 +1,55 @@
-<link rel="stylesheet" href="/styles.css">
-<meta charset="utf-8">
-<meta name="google-site-verification" content="ECFHqhJE6qAnc_lrvxobjPmZHIhvCQhrNX9uo0hKl98">
+<link rel="stylesheet" href="/styles.css" />
+<meta charset="utf-8" />
+<meta
+  name="google-site-verification"
+  content="ECFHqhJE6qAnc_lrvxobjPmZHIhvCQhrNX9uo0hKl98"
+/>
 <title>COVID-19 pandemic</title>
 
 <body>
-    <div style="display: flex;">
-        <h1>COVID-19 pandemic</h1>
-        <p class="sub">by <a href="https://twitter.com/mandrej">milan andrejevic</a>,
-            data from <a href="https://ourworldindata.org/coronavirus-source-data">Our World in Data</a>.
-            Updated <span id="latest">Oct 17, 2021</span>
-        </p>
-    </div>
-    <p>
-        <select id="selected">
-            <option selected value="daily_cases_per_million" selected>Daily cases / per 100k</option>
-            <option value="positive_rate">Positive rate</option>
-            <option value="excess_mortality">Excess mortality</option>
-        </select>
-        <a id="download" href="#" download="chart.png">save</a>
+  <div style="display: flex">
+    <h1>COVID-19 pandemic</h1>
+    <p class="sub">
+      by <a href="https://twitter.com/mandrej">milan andrejevic</a>, data from
+      <a href="https://ourworldindata.org/coronavirus-source-data"
+        >Our World in Data</a
+      >. Updated <span id="latest">Oct 17, 2021</span>
     </p>
-    <div id="loader" class="lds-grid">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-    </div>
-    <div class="box">
-        <canvas></canvas>
-    </div>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GA %>"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', '<%= process.env.GA %>');
-    </script>
+  </div>
+  <p>
+    <select id="selected">
+      <option selected value="daily_cases_per_million" selected>
+        Daily cases / per 100k
+      </option>
+      <option value="positive_rate">Positive rate</option>
+      <option value="excess_mortality">Excess mortality</option>
+    </select>
+    <a id="download" href="#" download="chart.png">save</a>
+  </p>
+  <div id="loader" class="lds-grid">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  <div class="box">
+    <canvas></canvas>
+  </div>
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GA %>"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || []
+    function gtag() {
+      dataLayer.push(arguments)
+    }
+    gtag('js', new Date())
+    gtag('config', '<%= process.env.GA %>')
+  </script>
 </body>
