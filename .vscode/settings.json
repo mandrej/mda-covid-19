@@ -4,6 +4,7 @@
   "prettier.semi": false,
   "prettier.trailingComma": "none",
   "prettier.singleQuote": true,
+  "prettier.arrowParens": "avoid",
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",
   "javascript.format.semicolons": "remove",

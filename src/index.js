@@ -64,7 +64,7 @@ const chartProperties = new Set(['name', 'shown'])
 const cacheProperties = new Set(['ts', 'latest', 'data'])
 // https://stackoverflow.com/questions/31128855/comparing-ecma6-sets-for-equality
 let areSetsEqual = (a, b) =>
-  a.size === b.size && [...a].every((value) => b.has(value))
+  a.size === b.size && [...a].every(value => b.has(value))
 
 const store = localforage.createInstance({
   driver: [localforage.LOCALSTORAGE],
@@ -73,7 +73,7 @@ const store = localforage.createInstance({
 
 store
   .getItem('chart')
-  .then((chart) => {
+  .then(chart => {
     const now = Date.now()
     const expired = 3600 * 1000
     let id = document.querySelector('#selected option:checked').value
@@ -97,13 +97,13 @@ store
     }
     // statistics
     ga_select_graph(id)
-    shown.forEach((country) => {
+    shown.forEach(country => {
       ga_add_country(country)
     })
 
     store
       .getItem('cache')
-      .then((cache) => {
+      .then(cache => {
         if (cache) {
           const properties = new Set(Object.getOwnPropertyNames(cache))
           if (areSetsEqual(cacheProperties, properties)) {
@@ -121,9 +121,9 @@ store
           fetch(id, shown, main)
         }
       })
-      .catch((err) => console.log(err))
+      .catch(err => console.log(err))
   })
-  .catch((err) => console.log(err))
+  .catch(err => console.log(err))
 
 function fetch(id, shown, callback) {
   /**
@@ -145,7 +145,7 @@ function fetch(id, shown, callback) {
    */
   axios
     .get('https://covid.ourworldindata.org/data/owid-covid-data.csv')
-    .then((resp) => {
+    .then(resp => {
       const parsed = []
       const lines = resp.data.split('\n')
       const headers = lines[0].split(',')
@@ -177,10 +177,10 @@ function fetch(id, shown, callback) {
         parsed.push(obj)
       }
       const tmp = parsed
-        .filter((d) => {
+        .filter(d => {
           return locations.indexOf(d.location) >= 0
         })
-        .filter((d) => {
+        .filter(d => {
           return d.date > start
         })
       const date = tmp.slice().pop().date
@@ -222,7 +222,7 @@ function main(id, shown, cache) {
 
   function grouping(data, country) {
     return data
-      .filter((d) => d.location === country)
+      .filter(d => d.location === country)
       .reduce((chunk, item, index) => {
         const chunkIndex = Math.floor(index / period)
         if (!chunk[chunkIndex]) {
@@ -262,10 +262,10 @@ function main(id, shown, cache) {
         const group = grouping(data, country)
         return {
           label: country,
-          data: group.map((chunk) => {
+          data: group.map(chunk => {
             const average =
               chunk
-                .map((d) => d.new_cases_per_million)
+                .map(d => d.new_cases_per_million)
                 .reduce((acc, cur) => acc + cur) / chunk.length
             const latest = chunk.slice(-1).pop()
             const idx = parseInt(chunk.length / 2)
@@ -282,7 +282,7 @@ function main(id, shown, cache) {
         }
       }),
       callbacks: {
-        label: (context) => writeLabel(context, false)
+        label: context => writeLabel(context, false)
       }
     },
     positive_rate: {
@@ -299,12 +299,12 @@ function main(id, shown, cache) {
         const group = grouping(data, country)
         return {
           label: country,
-          data: group.map((chunk) => {
-            const filtered = chunk.filter((d) => d.positive_rate !== null)
+          data: group.map(chunk => {
+            const filtered = chunk.filter(d => d.positive_rate !== null)
             if (!filtered.length) return skip
             const average =
               filtered
-                .map((d) => d.positive_rate)
+                .map(d => d.positive_rate)
                 .reduce((acc, cur) => acc + cur) / filtered.length
             const latest = chunk.slice(-1).pop()
             const idx = parseInt(chunk.length / 2)
@@ -321,7 +321,7 @@ function main(id, shown, cache) {
         }
       }),
       callbacks: {
-        label: (context) => writeLabel(context)
+        label: context => writeLabel(context)
       }
     },
     excess_mortality: {
@@ -336,11 +336,11 @@ function main(id, shown, cache) {
       },
       datasets: locations.map((country, idx) => {
         const group = data.filter(
-          (d) => d.location === country && d.excess_mortality > 0
+          d => d.location === country && d.excess_mortality > 0
         )
         return {
           label: country,
-          data: group.map((d) => {
+          data: group.map(d => {
             return { x: d.date, y: d.excess_mortality }
           }),
           fill: true,
@@ -350,7 +350,7 @@ function main(id, shown, cache) {
         }
       }),
       callbacks: {
-        label: (context) => writeLabel(context)
+        label: context => writeLabel(context)
       }
     }
   }
@@ -412,7 +412,7 @@ function main(id, shown, cache) {
     }
   })
 
-  document.getElementById('selected').addEventListener('change', (event) => {
+  document.getElementById('selected').addEventListener('change', event => {
     id = event.target.value
     store.setItem('chart', { name: id, shown: shown })
 
@@ -427,7 +427,7 @@ function main(id, shown, cache) {
     chart.update()
   })
 
-  document.getElementById('download').addEventListener('click', (event) => {
+  document.getElementById('download').addEventListener('click', event => {
     const canvas = document.getElementById('chart')
     ctx.globalCompositeOperation = 'destination-over'
     ctx.fillStyle = '#fff'
