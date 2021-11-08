@@ -268,9 +268,9 @@ function main(id, shown, cache) {
                 .map(d => d.new_cases_per_million)
                 .reduce((acc, cur) => acc + cur) / chunk.length
             const latest = chunk.slice(-1).pop()
-            const idx = parseInt(chunk.length / 2)
+            const _i = parseInt(chunk.length / 2)
             if (latest.date) {
-              return { x: chunk[idx].date, y: average / 10 }
+              return { x: chunk[_i].date, y: average / 10 }
             } else {
               return skip
             }
@@ -307,9 +307,9 @@ function main(id, shown, cache) {
                 .map(d => d.positive_rate)
                 .reduce((acc, cur) => acc + cur) / filtered.length
             const latest = chunk.slice(-1).pop()
-            const idx = parseInt(chunk.length / 2)
+            const _i = parseInt(chunk.length / 2)
             if (latest.date) {
-              return { x: chunk[idx].date, y: average * 100 }
+              return { x: chunk[_i].date, y: average * 100 }
             } else {
               return skip
             }
