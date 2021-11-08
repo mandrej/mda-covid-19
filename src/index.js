@@ -55,8 +55,8 @@ const colors = Array.from(locations, (el, i) => {
   ]
 })
 let ctx = document.querySelector('.box canvas').getContext('2d')
-const start = '2020-09-27'
-let displayFrom = '2020-09-27' // Sunday
+const start = '2020-10-25'
+let displayFrom = '2020-10-25' // Sunday
 const dateFormat = 'MMM dd, yyyy'
 const period = 7
 const skip = { x: null, y: null }
@@ -268,8 +268,9 @@ function main(id, shown, cache) {
                 .map((d) => d.new_cases_per_million)
                 .reduce((acc, cur) => acc + cur) / chunk.length
             const latest = chunk.slice(-1).pop()
+            const idx = parseInt(chunk.length / 2)
             if (latest.date) {
-              return { x: latest.date, y: average / 10 }
+              return { x: chunk[idx].date, y: average / 10 }
             } else {
               return skip
             }
@@ -306,8 +307,9 @@ function main(id, shown, cache) {
                 .map((d) => d.positive_rate)
                 .reduce((acc, cur) => acc + cur) / filtered.length
             const latest = chunk.slice(-1).pop()
+            const idx = parseInt(chunk.length / 2)
             if (latest.date) {
-              return { x: latest.date, y: average * 100 }
+              return { x: chunk[idx].date, y: average * 100 }
             } else {
               return skip
             }
