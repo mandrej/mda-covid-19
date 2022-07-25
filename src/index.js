@@ -449,7 +449,7 @@ Chart.defaults.elements.point.radius = 8
 Chart.defaults.elements.point.hoverRadius = 8
 
 function ga_select_graph(name, value = 1) {
-  gtag('event', 'chart', {
+  gtag('event', 'change_chart', {
     event_category: 'engagement',
     event_label: name,
     value: value
@@ -457,7 +457,7 @@ function ga_select_graph(name, value = 1) {
 }
 
 function ga_add_country(country, value = 1) {
-  gtag('event', 'country', {
+  gtag('event', 'change_country', {
     event_category: 'engagement',
     event_label: country,
     value: value
