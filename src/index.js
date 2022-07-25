@@ -55,8 +55,7 @@ const colors = Array.from(locations, (el, i) => {
   ]
 })
 let ctx = document.querySelector('.box canvas').getContext('2d')
-const start = '2020-10-25'
-let displayFrom = '2020-10-25' // Sunday
+let displayFrom = '2021-06-27' // Sunday
 const dateFormat = 'MMM dd, yyyy'
 const period = 7
 const skip = { x: null, y: null }
@@ -181,7 +180,7 @@ function fetch(id, shown, callback) {
           return locations.indexOf(d.location) >= 0
         })
         .filter(d => {
-          return d.date > start
+          return d.date > displayFrom
         })
       const date = tmp.slice().pop().date
       const cache = { ts: Date.now(), latest: date, data: tmp }
