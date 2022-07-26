@@ -13,7 +13,7 @@
       by <a href="https://twitter.com/mandrej">milan andrejevic</a>, data from
       <a href="https://ourworldindata.org/coronavirus-source-data"
         >Our World in Data</a
-      >. Updated <span id="latest">Oct 17, 2021</span>
+      >. Updated <span id="latest">Jul 25, 2022</span>
     </p>
   </div>
   <p>
@@ -50,6 +50,7 @@
       dataLayer.push(arguments)
     }
     gtag('js', new Date())
+    gtag('config', '<%= process.env.UA %>')
     gtag('config', '<%= process.env.GA %>')
   </script>
 </body>

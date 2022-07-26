@@ -14,5 +14,5 @@ handlers:
     static_files: dist/\1
     upload: dist/(.*)
     secure: always
-# https://mda-covid-19.appspot.com/
-# gcloud app deploy app.yaml --project=mda-covid-19 --version=2022-07-25v3
+# https://mda-covid-19.oa.r.appspot.com/
+# gcloud app deploy app.yaml --project=mda-covid-19 --version=2022-07-26
