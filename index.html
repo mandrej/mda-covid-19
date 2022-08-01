@@ -42,6 +42,10 @@
   </div>
   <script
     async
+    src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.UA %>"
+  ></script>
+  <script
+    async
     src="https://www.googletagmanager.com/gtag/js?id=<%= process.env.GA %>"
   ></script>
   <script>
@@ -51,6 +55,6 @@
     }
     gtag('js', new Date())
     gtag('config', '<%= process.env.UA %>')
-    gtag('config', '<%= process.env.GA %>')
+    gtag('config', '<%= process.env.GA %>', { debug_mode: true })
   </script>
 </body>
