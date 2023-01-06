@@ -55,7 +55,7 @@ const colors = Array.from(locations, (el, i) => {
   ]
 })
 let ctx = document.querySelector('.box canvas').getContext('2d')
-let displayFrom = '2021-06-27' // Sunday
+let displayFrom = '2021-12-26' // Sunday
 const dateFormat = 'MMM dd, yyyy'
 const period = 7
 const skip = { x: null, y: null }
